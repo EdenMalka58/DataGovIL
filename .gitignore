@@ -3,3 +3,5 @@ obj/
 .vs/
 *.user
 App_Data/
+web/node_modules/
+web/dist/
