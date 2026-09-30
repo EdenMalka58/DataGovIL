@@ -25,7 +25,7 @@ public sealed class ManufacturerExportBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Manufacturer CSV export worker started");
+        _logger.LogInformation("Manufacturer catalog sync worker started");
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -51,11 +51,11 @@ public sealed class ManufacturerExportBackgroundService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Manufacturer CSV export worker caught an unhandled failure");
+                _logger.LogError(ex, "Manufacturer catalog sync worker caught an unhandled failure");
                 _status.MarkFailed(ex.Message);
             }
         }
 
-        _logger.LogInformation("Manufacturer CSV export worker stopped");
+        _logger.LogInformation("Manufacturer catalog sync worker stopped");
     }
 }

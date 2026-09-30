@@ -1,34 +1,41 @@
-import type { VehicleRecord } from "../types/vehicle";
+import type { VehicleEnergyCost } from "../types/energyCost";
+import type { VehicleHistoryRecord, VehicleRecord } from "../types/vehicle";
+import type { VehiclePriceListRecord } from "../types/priceList";
 import { normalizePlate } from "../lib/plate";
+import { getJson } from "./client";
 
-export class VehicleLookupError extends Error {
-  readonly status: number;
-
-  constructor(status: number, message: string) {
-    super(message);
-    this.name = "VehicleLookupError";
-    this.status = status;
-  }
+export function lookupVehicle(registrationNumber: string, signal?: AbortSignal): Promise<VehicleRecord> {
+  const plate = normalizePlate(registrationNumber);
+  return getJson<VehicleRecord>(`/api/Vehicles/${encodeURIComponent(plate)}`, signal);
 }
 
-export async function lookupVehicle(registrationNumber: string): Promise<VehicleRecord> {
+/** History is already embedded in VehicleRecord.history — only use this for an explicit refresh. */
+export function lookupVehicleHistory(
+  registrationNumber: string,
+  signal?: AbortSignal,
+): Promise<VehicleHistoryRecord> {
   const plate = normalizePlate(registrationNumber);
-  const response = await fetch(`/api/vehicles/${encodeURIComponent(plate)}`);
+  return getJson<VehicleHistoryRecord>(`/api/Vehicles/${encodeURIComponent(plate)}/history`, signal);
+}
 
-  if (response.status === 404) {
-    throw new VehicleLookupError(404, "לא מצאנו רכב עם מספר הרישוי הזה במאגר.");
-  }
+export function lookupPriceList(
+  manufacturerCode: string,
+  modelCode: string,
+  manufactureYear: string,
+  signal?: AbortSignal,
+): Promise<VehiclePriceListRecord[]> {
+  const path = [manufacturerCode, modelCode, manufactureYear].map(encodeURIComponent).join("/");
+  return getJson<VehiclePriceListRecord[]>(`/api/PriceList/${path}`, signal);
+}
 
-  if (response.status === 502) {
-    throw new VehicleLookupError(
-      502,
-      "שירות הנתונים הממשלתי אינו זמין כרגע. נסו שוב בעוד רגע.",
-    );
-  }
-
-  if (!response.ok) {
-    throw new VehicleLookupError(response.status, "האיתור נכשל. נסו שוב בעוד רגע.");
-  }
-
-  return (await response.json()) as VehicleRecord;
+/** Estimated monthly energy cost; omit kmPerMonth to use the server default. */
+export function lookupEnergyCost(
+  manufacturerCode: string,
+  modelCode: string,
+  kmPerMonth?: number | null,
+  signal?: AbortSignal,
+): Promise<VehicleEnergyCost> {
+  const path = [manufacturerCode, modelCode].map(encodeURIComponent).join("/");
+  const query = kmPerMonth != null ? `?kmPerMonth=${encodeURIComponent(String(kmPerMonth))}` : "";
+  return getJson<VehicleEnergyCost>(`/api/Vehicles/${path}/energy-cost${query}`, signal);
 }

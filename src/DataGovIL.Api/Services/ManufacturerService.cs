@@ -1,3 +1,4 @@
+using System.Globalization;
 using DataGovIL.Api.Models;
 using DataGovIL.Client;
 using DataGovIL.Client.Models;
@@ -13,6 +14,13 @@ public interface IManufacturerService
     /// </summary>
     Task<PagedResult<ManufacturerModelRecord>> GetManufacturersAndModelsAsync(
         string? manufacturerName, string? modelName, int page, int pageSize, CancellationToken ct = default);
+
+    /// <summary>
+    /// Looks up a single WLTP make/model row by exact manufacturer code (<c>tozeret_cd</c>)
+    /// and model code (<c>degem_cd</c>).
+    /// </summary>
+    Task<ManufacturerModelRecord?> GetByCodesAsync(
+        string manufacturerCode, string modelCode, CancellationToken ct = default);
 }
 
 public class ManufacturerService : IManufacturerService
@@ -53,14 +61,45 @@ public class ManufacturerService : IManufacturerService
             };
         }
 
-        var result = await _client.DatastoreSearchAsync<ManufacturerModelRecord>(query, ct);
+        var result = await _client.DatastoreSearchAsync<ManufacturerModelDatastoreRecord>(query, ct);
 
         return new PagedResult<ManufacturerModelRecord>
         {
             Page = page,
             PageSize = pageSize,
             TotalCount = result.Total,
-            Items = result.Records
+            Items = result.Records.Select(ManufacturerModelRecord.FromDatastore).ToList()
         };
     }
+
+    public async Task<ManufacturerModelRecord?> GetByCodesAsync(
+        string manufacturerCode, string modelCode, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(manufacturerCode))
+            throw new ArgumentException("Manufacturer code is required.", nameof(manufacturerCode));
+        if (string.IsNullOrWhiteSpace(modelCode))
+            throw new ArgumentException("Model code is required.", nameof(modelCode));
+
+        var query = new DatastoreSearchQuery
+        {
+            ResourceId = _options.WltpMakeModelResourceId,
+            Filters = new Dictionary<string, object>
+            {
+                ["tozeret_cd"] = ToNumericFilterValue(manufacturerCode.Trim()),
+                ["degem_cd"] = ToNumericFilterValue(modelCode.Trim())
+            },
+            Limit = 1
+        };
+
+        var result = await _client.DatastoreSearchAsync<ManufacturerModelDatastoreRecord>(query, ct);
+        var row = result.Records.FirstOrDefault();
+        return row is null ? null : ManufacturerModelRecord.FromDatastore(row);
+    }
+
+    /// <summary>
+    /// <c>tozeret_cd</c> / <c>degem_cd</c> are numeric in the datastore; send a JSON number when the
+    /// path segment parses as one so CKAN exact-match filters succeed.
+    /// </summary>
+    private static object ToNumericFilterValue(string value)
+        => long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : value;
 }

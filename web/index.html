@@ -2,18 +2,32 @@
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       name="description"
-      content="אוטוסקופ — בחירת רכב יד שנייה לפי נתונים רשמיים, לא לפי תחושת בטן."
+      content="אוטוסקופ — בדיקת רכב יד שנייה לפי מספר רישוי: סטטוס, טסט, ריקולים, היסטוריית בעלויות, הערכת שווי ומפרט מלא מתוך מאגרי data.gov.il."
     />
-    <title>אוטוסקופ — בחירת רכב יד שנייה</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f7fb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)" />
+    <title>אוטוסקופ — בדיקת רכב יד שנייה לפי מספר רישוי</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      href="./node_modules/@fontsource/heebo/files/heebo-hebrew-400-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("autoscope.theme");
+          if (stored === "light" || stored === "dark") {
+            document.documentElement.dataset.theme = stored;
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

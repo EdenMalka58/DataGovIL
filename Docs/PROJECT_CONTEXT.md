@@ -64,7 +64,6 @@ src/
     Models/
       VehicleRecord.cs              <- DTO for one row of the vehicle registration resource
       ManufacturerModelRecord.cs    <- DTO for one row of the WLTP make/model resource
-      ManufacturerCsvRow.cs         <- data.csv column shape
       ManufacturerExportStatus.cs   <- export job snapshot
       ExportOptions.cs              <- OutputDirectory / PageSize / retries (appsettings)
       PagedResult.cs                <- generic paging envelope returned by both controllers,

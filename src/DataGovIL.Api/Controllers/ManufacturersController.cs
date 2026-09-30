@@ -58,6 +58,39 @@ public class ManufacturersController : ControllerBase
     }
 
     /// <summary>
+    /// Look up a single make/model by manufacturer code (<c>tozeret_cd</c>) and model code (<c>degem_cd</c>).
+    /// </summary>
+    /// <param name="manufacturerCode">e.g. "5".</param>
+    /// <param name="modelCode">e.g. "179".</param>
+    [HttpGet("{manufacturerCode}/{modelCode}")]
+    [ProducesResponseType(typeof(ManufacturerModelRecord), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ManufacturerModelRecord>> GetByCodes(
+        string manufacturerCode,
+        string modelCode,
+        CancellationToken ct)
+    {
+        try
+        {
+            var record = await _manufacturerService.GetByCodesAsync(manufacturerCode, modelCode, ct);
+            return record is null ? NotFound() : Ok(record);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (CkanApiException ex)
+        {
+            _logger.LogError(
+                ex,
+                "data.gov.il lookup failed for manufacturer {ManufacturerCode} / model {ModelCode}",
+                manufacturerCode,
+                modelCode);
+            return Problem(title: "Upstream data.gov.il error", detail: ex.Message, statusCode: StatusCodes.Status502BadGateway);
+        }
+    }
+
+    /// <summary>
     /// Queues a background export of the full WLTP make/model catalog to data.csv
     /// (one row per unique tozeret_cd + degem_cd). Returns immediately.
     /// </summary>

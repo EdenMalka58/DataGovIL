@@ -1,181 +1,72 @@
 {
-  "openapi": "3.0.0",
-  "servers": [
-    {
-      "url": "https://data.gov.il/api/3",
-      "description": "Data gov IL CKAN API"
-    }
-  ],
+  "openapi": "3.0.1",
   "info": {
-    "title": "Data Gov CKAN API Documentation",
-    "description": "This API provides live access to the CKAN portion of Data gov IL.",
-    "contact": {
-      "name": "Data Gov",
-      "url": "https://data.gov.il"
-    },
-    "version": "1.0.0"
+    "title": "DataGovIL.Api",
+    "description": "Sample .NET Core Web API on top of the data.gov.il CKAN datastore (vehicle registrations + WLTP makes/models).",
+    "version": "v1"
   },
-  "tags": [
-    {
-      "name": "action",
-      "description": "### CKAN's Action API is a powerful, RPC-style API that exposes all of CKAN's core features.\n All endpoints support POST requests with an `application/json` or a `multipart/form-data` body.\n Use an `application/json` POST request when nested json parameters are required.\n\n   Use a `multipart/form-data` POST request when file uploads are required.\n Read-only endpoints (`*_show`, `*_list`, `*_search` etc.) accept GET requests with query parameters.\n Responses are returned in a JSON envelope. On success:```json{  \"help\": \"url to complete endpoint help\",  \"success\": true,  \"result\": {...}}``` or on errors:```json{  \"help\": \"url to complete endpoint help\",  \"success\": false,  \"error\": {    \"__type\": \"error type\",    \"message\": \"error message\",    \"field-with-error\": [\"first-error\", \"second-error\"],    ...  }}```",
-      "externalDocs": {
-        "description": "Full docs here",
-        "url": "https://docs.ckan.org/en/2.10/api/"
-      }
-    }
-  ],
   "paths": {
-    "/action/status_show": {
-      "post": {
-        "summary": "Get the CKAN version and a list of installed extensions",
-        "description": "Use this API to check that you can reach the server and to check its capabilities.",
-        "tags": [
-          "action"
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the CKAN version and a list of installed extensions"
-          }
-        }
-      }
-    },
-    "/action/license_list": {
+    "/api/Manufacturers": {
       "get": {
-        "summary": "Get the list of licenses available for datasets on the site.",
         "tags": [
-          "action"
+          "Manufacturers"
         ],
-        "responses": {
-          "200": {
-            "type": "array",
-            "description": "Returns the list of licenses available for datasets on the site."
-          }
-        }
-      }
-    },
-    "/action/package_list": {
-      "get": {
-        "summary": "Get a list of all package ids (datasets)",
-        "description": "Note: our site uses the same value for the \"name\" and \"id\" fields of datasets",
-        "tags": [
-          "action"
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns a list of package ids"
-          }
-        }
-      }
-    },
-    "/action/package_search": {
-      "get": {
-        "summary": "Find packages (datasets) matching query terms",
-        "description": "Searches for packages (datasets) matching the specified query terms",
+        "summary": "Paginated list of car manufacturers and models (from the WLTP makes/models dataset).",
         "parameters": [
           {
-            "name": "q",
+            "name": "manufacturer",
             "in": "query",
-            "description": "A solr query string that will be used to filter and score results",
-            "schema": {
-              "type": "string"
-            },
-            "examples": {
-              "All data": {
-                "value": ""
-              },
-              "Analytics": {
-                "value": "analytics"
-              }
-            }
-          },
-          {
-            "name": "fq",
-            "in": "query",
-            "description": "A solr filter query that will facet results by removing non-matching items.The available parameters may be discovered by interacting with thefacets on https://open.canada.ca/data/dataset and observing thequery parameters generated.",
-            "schema": {
-              "type": "string"
-            },
-            "examples": {
-              "No filter": {
-                "value": ""
-              },
-              "Published by digital ministry": {
-                "value": "organization:digital"
-              },
-              "Transport data": {
-                "value": "subject:transport"
-              }
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "Sort order for the search results, defaults to `score desc, metadata_modified desc`meaning sort by query score order, and with no query sort by most recently modified.",
+            "description": "Optional exact manufacturer name filter (e.g. \"טויוטה יפן\").",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "rows",
+            "name": "model",
             "in": "query",
-            "description": "Maximum rows to return, clamped to 1000",
+            "description": "Optional commercial model-name search (e.g. \"COROLLA\" also matches \"COROLLA CROSS\").",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "1-based page number.",
             "schema": {
               "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Rows per page (max 500).",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
               "default": 20
             }
-          },
-          {
-            "name": "start",
-            "in": "query",
-            "description": "The offset from the beginning of results (0) for pagination",
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "include_private",
-            "in": "query",
-            "description": "Must be set to `true` to retrieve results on the Registry,no effect on the Portal",
-            "schema": {
-              "type": "boolean"
-            }
           }
         ],
         "responses": {
           "200": {
-            "description": "List of packages (datasets) including all metadata available."
-          }
-        },
-        "tags": [
-          "action"
-        ]
-      }
-    },
-    "/action/package_show": {
-      "get": {
-        "summary": "Get metadata about one specific package (dataset)",
-        "description": "Returns metadata about the package (dataset) corresponding to its UUID.Refer to the [open data schema (type=dataset)](https://open.canada.ca/data/api/action/scheming_dataset_schema_show?type=dataset)or the [open information schema (type=info)](https://open.canada.ca/data/api/action/scheming_dataset_schema_show?type=info)for information about the metadata fields returned.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "description": "The package UUID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "tags": [
-          "action"
-        ],
-        "responses": {
-          "200": {
-            "description": "A package metadata object",
+            "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerModelRecordPagedResult"
+                }
+              },
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/ManufacturerModelRecordPagedResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerModelRecordPagedResult"
                 }
               }
             }
@@ -183,131 +74,69 @@
         }
       }
     },
-    "/action/organization_show": {
+    "/api/Manufacturers/{manufacturerCode}/{modelCode}": {
       "get": {
-        "summary": "Get details of a specific organization",
-        "description": "Return the details of an organization",
+        "tags": [
+          "Manufacturers"
+        ],
+        "summary": "Look up a single make/model by manufacturer code (`tozeret_cd`) and model code (`degem_cd`).",
         "parameters": [
           {
-            "name": "id",
-            "in": "query",
-            "description": "The id or name (short form) of the organization",
-            "schema": {
-              "type": "string",
-              "default": "tbs-sct"
-            }
-          }
-        ],
-        "tags": [
-          "action"
-        ],
-        "responses": {
-          "200": {
-            "description": "List organization details"
-          }
-        }
-      }
-    },
-    "/action/organization_list": {
-      "get": {
-        "summary": "Get names of all organizations",
-        "description": "Returns the names (short forms) of all indexed organizations",
-        "parameters": [],
-        "tags": [
-          "action"
-        ],
-        "responses": {
-          "200": {
-            "description": "List of organizations"
-          }
-        }
-      }
-    },
-    "/action/resource_search": {
-      "get": {
-        "summary": "Find resources",
-        "description": "Search resources based on their field values. Note that[package_search](#/action/get_action_package_search) has better performanceand more search functionality than this endpoint.",
-        "parameters": [
-          {
-            "name": "query",
-            "in": "query",
-            "description": "The search criteria string or list of strings of the form ``{field}:{term1}``",
-            "schema": {
-              "type": "string",
-              "default": "format:csv"
-            }
-          },
-          {
-            "name": "order_by",
-            "in": "query",
-            "description": "A field on the resource model that orders the results",
+            "name": "manufacturerCode",
+            "in": "path",
+            "description": "e.g. \"5\".",
+            "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "offset",
-            "in": "query",
-            "description": "Apply an offset to the query",
+            "name": "modelCode",
+            "in": "path",
+            "description": "e.g. \"179\".",
+            "required": true,
             "schema": {
-              "type": "integer",
-              "default": 0
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Apply a limit to the query",
-            "schema": {
-              "type": "integer",
-              "default": 0
+              "type": "string"
             }
           }
-        ],
-        "tags": [
-          "action"
         ],
         "responses": {
           "200": {
-            "description": "List of resources"
-          }
-        }
-      }
-    },
-    "/action/resource_show": {
-      "get": {
-        "summary": "Get metadata for a specific resource",
-        "description": "Returns the metadata of a resource. Refer to the[resource_fields value in the dataset schema](https://open.canada.ca/data/api/action/scheming_dataset_schema_show?type=dataset)for information about the metadata fields.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "description": "The id of the resource",
-            "schema": {
-              "type": "string",
-              "default": "e6c8bb1d-3726-418b-9b7e-1d97a9bbb817"
-            }
-          },
-          {
-            "name": "include_tracking",
-            "in": "query",
-            "description": "Return tracking (usage) information",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "tags": [
-          "action"
-        ],
-        "responses": {
-          "200": {
-            "description": "Return metadata of a resource",
+            "description": "OK",
             "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerModelRecord"
+                }
+              },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Dataset/properties/resources/items"
+                  "$ref": "#/components/schemas/ManufacturerModelRecord"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerModelRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -315,257 +144,349 @@
         }
       }
     },
-    "/action/datastore_search": {
-      "get": {
-        "summary": "Search a datastore resource",
-        "description": "The datastore_search action allows you to search data in a resource.Well-formatted CSV files that are uploaded (not linked) are automaticallyloaded into the datastore.",
-        "parameters": [
-          {
-            "name": "resource_id",
-            "in": "query",
-            "description": "id or alias of the resource to be searched against",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "required": true
-            },
-            "required": true
-          },
-          {
-            "name": "filters",
-            "in": "query",
-            "description": "matching conditions to select, `application/json` POST requests only",
-            "schema": {
-              "type": "object"
-            },
-            "examples": {
-              "(Value not supported for GET requests)": {
-                "value": ""
-              }
-            }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "description": "full text query searching across all columns in each row",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "distinct",
-            "in": "query",
-            "description": "return only distinct rows",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          },
-          {
-            "name": "plain",
-            "in": "query",
-            "description": "treat as plain text query",
-            "schema": {
-              "type": "boolean",
-              "default": true
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "maximum number of rows to return",
-            "schema": {
-              "type": "integer",
-              "default": 100
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "offset this number of rows",
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "fields",
-            "in": "query",
-            "description": "comma-separated string of column names to return",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "comma-separated string of column names with sort order",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "include_total",
-            "in": "query",
-            "description": "calculate and return the total number of matching rows, set to `false` for improved performance",
-            "schema": {
-              "type": "boolean",
-              "default": true
-            }
-          },
-          {
-            "name": "records_format",
-            "in": "query",
-            "description": "the format for the records return value, set to `csv` or `tsv` for improved performance",
-            "schema": {
-              "type": "string",
-              "default": "objects",
-              "enum": [
-                "objects",
-                "lists",
-                "csv",
-                "tsv"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of packages (datasets) including all metadata available."
-          }
-        },
-        "tags": [
-          "action"
-        ]
-      },
+    "/api/Manufacturers/export": {
       "post": {
-        "summary": "Search a datastore resource",
-        "description": "The datastore_search action allows you to search data in a resource.Well-formatted CSV files that are uploaded (not linked) are automaticallyloaded into the datastore.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "resource_id": {
-                    "type": "string",
-                    "format": "uuid",
-                    "required": true,
-                    "description": "id or alias of the resource to be searched against"
-                  },
-                  "filters": {
-                    "type": "object",
-                    "description": "matching conditions to select, `application/json` POST requests only"
-                  },
-                  "q": {
-                    "oneOf": [
-                      {
-                        "type": "string",
-                        "description": "full text query searching across all columns in each row",
-                        "example": ""
-                      },
-                      {
-                        "type": "object",
-                        "description": "fill text search on each field given"
-                      }
-                    ]
-                  },
-                  "distinct": {
-                    "type": "boolean",
-                    "description": "return only distinct rows",
-                    "default": false,
-                    "example": false
-                  },
-                  "plain": {
-                    "type": "boolean",
-                    "description": "treat as plain text query"
-                  },
-                  "limit": {
-                    "type": "integer",
-                    "description": "maximum number of rows to return",
-                    "example": 10
-                  },
-                  "offset": {
-                    "type": "integer",
-                    "description": "offset this number of rows"
-                  },
-                  "fields": {
-                    "oneOf": [
-                      {
-                        "type": "array",
-                        "description": "list of column names to return",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      {
-                        "type": "string",
-                        "description": "comma-separated string of column names to return"
-                      }
-                    ],
-                    "example": []
-                  },
-                  "sort": {
-                    "type": "string",
-                    "description": "comma-separated string of column names with sort order",
-                    "example": ""
-                  },
-                  "include_total": {
-                    "type": "boolean",
-                    "description": "calculate and return the total number of matching rows, set to `false` for improved performance",
-                    "default": false,
-                    "example": false
-                  },
-                  "records_format": {
-                    "type": "string",
-                    "description": "the format for the records return value, set to `csv` or `tsv` for improved performance",
-                    "enum": [
-                      "objects",
-                      "lists",
-                      "csv",
-                      "tsv"
-                    ]
+        "tags": [
+          "Manufacturers"
+        ],
+        "summary": "Queues a background export of the full WLTP make/model catalog to data.csv\r\n(one row per unique tozeret_cd + degem_cd). Returns immediately.",
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Manufacturers/export/status": {
+      "get": {
+        "tags": [
+          "Manufacturers"
+        ],
+        "summary": "Poll progress/completion of the manufacturer CSV export.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManufacturerExportStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/PriceList/{manufacturerCode}/{modelCode}/{manufactureYear}": {
+      "get": {
+        "tags": [
+          "PriceList"
+        ],
+        "summary": "Look up new-vehicle price-list rows by manufacturer code (`tozeret_cd`),\r\nmodel code (`degem_cd`), and manufacture year (`shnat_yitzur`).",
+        "parameters": [
+          {
+            "name": "manufacturerCode",
+            "in": "path",
+            "description": "e.g. \"5\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "modelCode",
+            "in": "path",
+            "description": "e.g. \"179\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "manufactureYear",
+            "in": "path",
+            "description": "e.g. \"2024\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehiclePriceListRecord"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehiclePriceListRecord"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehiclePriceListRecord"
                   }
                 }
               }
             }
-          }
-        },
-        "tags": [
-          "action"
-        ],
-        "responses": {
-          "200": {
-            "description": "List of packages (datasets) including all metadata available."
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/action/scheming_dataset_schema_show": {
+    "/api/Vehicles/{registrationNumber}/history": {
       "get": {
-        "summary": "Return the schema for a dataset type",
-        "description": "Dataset metadata schemas are defined in the [ckanext-scheming](https://github.com/ckan/ckanext-scheming)format.",
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Technical + ownership history for a registration number\r\n(`mispar_rechev`) from the two history datastore resources.",
         "parameters": [
           {
-            "name": "type",
-            "in": "query",
-            "description": "The dataset type",
+            "name": "registrationNumber",
+            "in": "path",
+            "description": "e.g. \"12345678\".",
+            "required": true,
             "schema": {
-              "type": "string",
-              "default": "dataset",
-              "enum": [
-                "dataset",
-                "info"
-              ]
+              "type": "string"
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleHistoryRecord"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleHistoryRecord"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleHistoryRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Vehicles/{registrationNumber}": {
+      "get": {
         "tags": [
-          "action"
+          "Vehicles"
+        ],
+        "summary": "Look up a single vehicle by its exact registration number (מספר רישוי).\r\nWhen the active registries miss, falls back to permanently-cancelled (\"ביטול סופי\")\r\nresources and then to inactive (\"לא פעיל\") resources, then personal-import vehicles.\r\nA found vehicle is also checked\r\nagainst the safety-systems discount list and the open-recall list, and gets a\r\ndepreciation calculation (kilometers, owner count, ownership type) from its history and price list.",
+        "parameters": [
+          {
+            "name": "registrationNumber",
+            "in": "path",
+            "description": "e.g. \"12345678\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
-            "description": "Returns metadata schema"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRecord"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRecord"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Vehicles": {
+      "get": {
+        "tags": [
+          "Vehicles"
+        ],
+        "summary": "Paged/free-text search across the vehicle registration dataset.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRecordPagedResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRecordPagedResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleRecordPagedResult"
+                }
+              }
+            }
           }
         }
       }
@@ -573,231 +494,1241 @@
   },
   "components": {
     "schemas": {
-      "Dataset": {
+      "DepreciationFactor": {
+        "enum": [
+          "Kilometers",
+          "OwnerCount",
+          "OwnershipType"
+        ],
+        "type": "string"
+      },
+      "DepreciationOwnerCategory": {
+        "enum": [
+          "Private",
+          "Commercial",
+          "Public",
+          "Rental",
+          "Kibbutz",
+          "Government",
+          "Taxi",
+          "DriveTech"
+        ],
+        "type": "string",
+        "description": "Matches the Delphi `ot*` constants; the value is the column index in the loss table."
+      },
+      "DepreciationVehicleCategory": {
+        "enum": [
+          "Private",
+          "Commercial4t",
+          "Commercial",
+          "Taxi",
+          "Minibus"
+        ],
+        "type": "string",
+        "description": "Matches the Delphi `ct*` constants; the value is the row index in the loss table."
+      },
+      "ManufacturerExportStatus": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the new dataset, must be between 2 and 100 characters long and contain only lowercase alphanumeric characters,``-`` and ``_``, e.g. ``'warandpeace'``"
-          },
-          "title": {
-            "type": "string",
-            "description": "The title of the dataset (optional, default: same as``name``)"
-          },
-          "private": {
-            "type": "boolean",
-            "description": "If ``True`` creates a private dataset"
-          },
-          "author": {
-            "type": "string",
-            "description": "The name of the dataset's author (optional)"
-          },
-          "author_email": {
-            "type": "string",
-            "description": "The email address of the dataset's author (optional)"
-          },
-          "maintainer": {
-            "type": "string",
-            "description": "The name of the dataset's maintainer (optional)"
-          },
-          "maintainer_email": {
-            "type": "string",
-            "description": "The email address of the dataset's maintainer (optional)"
-          },
-          "license_id": {
-            "type": "string",
-            "description": "The id of the dataset's license, see :py:func:`~ckan.logic.action.get.license_list` for available values(optional)"
-          },
-          "notes": {
-            "type": "string",
-            "description": "A description of the dataset (optional)"
-          },
-          "url": {
-            "type": "string",
-            "description": "A URL for the dataset's source (optional)"
-          },
-          "version": {
-            "type": "string",
-            "description": "Version, no longer than 100 characters (optional)"
-          },
           "state": {
             "type": "string",
-            "description": "The current state of the dataset, e.g. ``'active'`` or ``'deleted'``, only active datasets show up in search results and other lists of datasets, this parameter will be ignored if you are not authorized to change the state of the dataset (optional, default: ``'active'``)",
-            "example": "active"
+            "nullable": true
           },
-          "type": {
+          "message": {
             "type": "string",
-            "description": "The type of the dataset (optional) :py:class:`~ckan.plugins.interfaces.IDatasetForm` plugins associate themselves with different dataset types and provide custom dataset handling behaviour for these types",
-            "example": "dataset"
+            "nullable": true
           },
-          "resources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ResourceMultipart"
-            }
+          "pagesFetched": {
+            "type": "integer",
+            "format": "int32"
           },
-          "tags": {
-            "type": "array",
-            "description": "The dataset's tags, see :py:func:`tag_create` for the format of tag dictionaries (optional)",
-            "items": {
-              "type": "object"
-            }
+          "recordsSeen": {
+            "type": "integer",
+            "format": "int32"
           },
-          "extras": {
-            "type": "array",
-            "description": "The dataset's extras (optional), extras are arbitrary (key: value) metadata items that can be added to datasets, each extra dictionary should have keys ``'key'`` (a string), ``'value'`` (a string)",
-            "items": {
-              "type": "object",
-              "properties": {
-                "key": {
-                  "type": "string"
-                },
-                "value": {
-                  "type": "string"
-                }
-              }
-            }
+          "uniqueRowCount": {
+            "type": "integer",
+            "format": "int32"
           },
-          "relationships_as_object": {
-            "$ref": "#/components/schemas/PackageRelationships"
+          "estimatedTotalRawRows": {
+            "type": "integer",
+            "description": "CKAN's include_total figure from the first page. The WLTP resource currently returns\r\nan estimate (`total_was_estimated`), so this is progress context only — not a\r\nstop condition.",
+            "format": "int32",
+            "nullable": true
           },
-          "relationships_as_subject": {
-            "$ref": "#/components/schemas/PackageRelationships"
-          },
-          "groups": {
-            "type": "array",
-            "description": "The groups to which the dataset belongs (optional), each group dictionary should have one or more of the following keys which identify an existing group ``'id'`` (the id of the group, string), or ``'name'`` (the name of the group, string),  to see which groups exist call :py:func:`~ckan.logic.action.get.group_list`",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "id": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "owner_org": {
+          "startedAt": {
             "type": "string",
-            "description": "The id of the dataset's owning organization, see :py:func:`~ckan.logic.action.get.organization_list` or :py:func:`~ckan.logic.action.get.organization_list_for_user` for available values. This parameter can be made optional if the config option :ref:`ckan.auth.create_unowned_dataset` is set to ``True``."
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "outputFile": {
+            "type": "string",
+            "description": "Destination of the last successful sync (e.g. `postgresql:public.manufacturer_models`).\r\nKept as `OutputFile` for API compatibility with the former CSV export.",
+            "nullable": true
+          },
+          "inserted": {
+            "type": "integer",
+            "description": "Totals across all synced tables; see DataGovIL.Api.Models.ManufacturerExportStatus.Tables for the per-table breakdown.",
+            "format": "int32",
+            "nullable": true
+          },
+          "updated": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "deleted": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "unchanged": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "tables": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ManufacturerSyncDelta"
+            },
+            "description": "Delta per table, keyed by table name (e.g. `manufacturers`, `manufacturer_models`).",
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
           }
-        }
+        },
+        "additionalProperties": false,
+        "description": "Snapshot of the in-process manufacturer CSV export job (single-instance deployment)."
       },
-      "ResourceMultipart": {
+      "ManufacturerModelRecord": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "The id of the resource"
+            "description": "מזהה",
+            "nullable": true
+          },
+          "modelType": {
+            "type": "string",
+            "description": "סוג דגם",
+            "nullable": true
+          },
+          "manufacturerCode": {
+            "type": "string",
+            "description": "קוד תוצר",
+            "nullable": true
+          },
+          "manufacturerName": {
+            "type": "string",
+            "description": "תוצר",
+            "nullable": true
+          },
+          "manufacturerCountryName": {
+            "type": "string",
+            "description": "ארץ תוצר",
+            "nullable": true
+          },
+          "tozar": {
+            "type": "string",
+            "description": "תוצר",
+            "nullable": true
+          },
+          "modelCode": {
+            "type": "string",
+            "description": "קוד דגם",
+            "nullable": true
+          },
+          "modelName": {
+            "type": "string",
+            "description": "דגם",
+            "nullable": true
+          },
+          "modelYear": {
+            "type": "string",
+            "description": "שנת יצור",
+            "nullable": true
+          },
+          "feeGroupCode": {
+            "type": "string",
+            "description": "קבוצת אגרה",
+            "nullable": true
+          },
+          "feeGroupPrice": {
+            "type": "number",
+            "format": "double",
+            "description": "שווי שימוש חודשי משוער (₪), derived from feeGroupCode.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "estimatedLicenseFee": {
+            "type": "number",
+            "format": "double",
+            "description": "אגרת רישוי משוערת (₪) for the current fee year, from feeGroupCode and the vehicle's first registration date. Set only on vehicle lookups; null on catalog rows, which have no registration date.",
+            "nullable": true
+          },
+          "engineDisplacement": {
+            "type": "string",
+            "description": "נפח מנוע",
+            "nullable": true
+          },
+          "totalWeight": {
+            "type": "string",
+            "description": "משקל כולל",
+            "nullable": true
+          },
+          "curbWeight": {
+            "type": "string",
+            "description": "משקל עצמי",
+            "nullable": true
+          },
+          "liftingLoadWeight": {
+            "type": "string",
+            "description": "משקל מטען הרמה",
+            "nullable": true
+          },
+          "height": {
+            "type": "string",
+            "description": "גובה",
+            "nullable": true
+          },
+          "driveCode": {
+            "type": "string",
+            "description": "קוד הנעה",
+            "nullable": true
+          },
+          "driveName": {
+            "type": "string",
+            "description": "הנעה",
+            "nullable": true
+          },
+          "airConditioningIndicator": {
+            "type": "string",
+            "description": "מזגן",
+            "nullable": true
+          },
+          "absIndicator": {
+            "type": "string",
+            "description": "ABS",
+            "nullable": true
+          },
+          "airbagsSource": {
+            "type": "string",
+            "description": "מקור כריות אוויר",
+            "nullable": true
+          },
+          "airbagCount": {
+            "type": "string",
+            "description": "מספר כריות אוויר",
+            "nullable": true
+          },
+          "powerSteeringIndicator": {
+            "type": "string",
+            "description": "הגה כוח",
+            "nullable": true
+          },
+          "automaticTransmissionIndicator": {
+            "type": "string",
+            "description": "תיבת הילוכים אוטומטית",
+            "nullable": true
+          },
+          "powerWindowsSource": {
+            "type": "string",
+            "description": "מקור חלונות חשמל",
+            "nullable": true
+          },
+          "powerWindowCount": {
+            "type": "string",
+            "description": "מספר חלונות חשמל",
+            "nullable": true
+          },
+          "powerSunroofIndicator": {
+            "type": "string",
+            "description": "חלון בגג",
+            "nullable": true
+          },
+          "alloyWheelsIndicator": {
+            "type": "string",
+            "description": "גלגלי סגסוגת קלה",
+            "nullable": true
+          },
+          "cargoBoxIndicator": {
+            "type": "string",
+            "description": "ארגז",
+            "nullable": true
+          },
+          "bodyType": {
+            "type": "string",
+            "description": "מרכב",
+            "nullable": true
+          },
+          "trimLevel": {
+            "type": "string",
+            "description": "רמת גימור",
+            "nullable": true
+          },
+          "fuelCode": {
+            "type": "string",
+            "description": "קוד דלק",
+            "nullable": true
+          },
+          "fuelName": {
+            "type": "string",
+            "description": "סוג דלק",
+            "nullable": true
+          },
+          "doorCount": {
+            "type": "string",
+            "description": "מספר דלתות",
+            "nullable": true
+          },
+          "horsepower": {
+            "type": "string",
+            "description": "כוח סוס",
+            "nullable": true
+          },
+          "seatCount": {
+            "type": "string",
+            "description": "מספר מושבים",
+            "nullable": true
+          },
+          "stabilityControlIndicator": {
+            "type": "string",
+            "description": "בקרת יציבות",
+            "nullable": true
+          },
+          "towingCapacityWithBrakes": {
+            "type": "string",
+            "description": "כושר גרירה עם בלמים",
+            "nullable": true
+          },
+          "towingCapacityWithoutBrakes": {
+            "type": "string",
+            "description": "כושר גרירה בלי בלמים",
+            "nullable": true
+          },
+          "homologationTypeCode": {
+            "type": "string",
+            "description": "קוד סוג תקינה",
+            "nullable": true
+          },
+          "homologationTypeName": {
+            "type": "string",
+            "description": "סוג תקינה",
+            "nullable": true
+          },
+          "euTypeApproval": {
+            "type": "string",
+            "description": "תקינה EU",
+            "nullable": true
+          },
+          "converterTypeCode": {
+            "type": "string",
+            "description": "קוד סוג ממיר",
+            "nullable": true
+          },
+          "converterTypeName": {
+            "type": "string",
+            "description": "סוג ממיר",
+            "nullable": true
+          },
+          "driveTechnologyCode": {
+            "type": "string",
+            "description": "קוד טכנולוגיית הנעה",
+            "nullable": true
+          },
+          "driveTechnologyName": {
+            "type": "string",
+            "description": "טכנולוגיית הנעה",
+            "nullable": true
+          },
+          "co2Amount": {
+            "type": "string",
+            "description": "כמות CO2",
+            "nullable": true
+          },
+          "noxAmount": {
+            "type": "string",
+            "description": "כמות NOX",
+            "nullable": true
+          },
+          "pm10Amount": {
+            "type": "string",
+            "description": "כמות PM10",
+            "nullable": true
+          },
+          "hcAmount": {
+            "type": "string",
+            "description": "כמות HC",
+            "nullable": true
+          },
+          "hcNoxAmount": {
+            "type": "string",
+            "description": "כמות HC+NOX",
+            "nullable": true
+          },
+          "coAmount": {
+            "type": "string",
+            "description": "כמות CO",
+            "nullable": true
+          },
+          "co2AmountCity": {
+            "type": "string",
+            "description": "כמות CO2 בעיר",
+            "nullable": true
+          },
+          "noxAmountCity": {
+            "type": "string",
+            "description": "כמות NOX בעיר",
+            "nullable": true
+          },
+          "pm10AmountCity": {
+            "type": "string",
+            "description": "כמות PM10 בעיר",
+            "nullable": true
+          },
+          "hcAmountCity": {
+            "type": "string",
+            "description": "כמות HC בעיר",
+            "nullable": true
+          },
+          "coAmountCity": {
+            "type": "string",
+            "description": "כמות CO בעיר",
+            "nullable": true
+          },
+          "co2AmountHighway": {
+            "type": "string",
+            "description": "כמות CO2 בבינעירוני",
+            "nullable": true
+          },
+          "noxAmountHighway": {
+            "type": "string",
+            "description": "כמות NOX בבינעירוני",
+            "nullable": true
+          },
+          "pm10AmountHighway": {
+            "type": "string",
+            "description": "כמות PM10 בבינעירוני",
+            "nullable": true
+          },
+          "hcAmountHighway": {
+            "type": "string",
+            "description": "כמות HC בבינעירוני",
+            "nullable": true
+          },
+          "coAmountHighway": {
+            "type": "string",
+            "description": "כמות CO בבינעירוני",
+            "nullable": true
+          },
+          "greenScore": {
+            "type": "string",
+            "description": "מדד ירוק",
+            "nullable": true
+          },
+          "pollutionGroup": {
+            "type": "string",
+            "description": "קבוצת זיהום",
+            "nullable": true
+          },
+          "laneDepartureControlIndicator": {
+            "type": "string",
+            "description": "בקרת סטייה מנתיב",
+            "nullable": true
+          },
+          "laneDepartureControlRegulationSource": {
+            "type": "string",
+            "description": "מקור התקנה בקרת סטייה מנתיב",
+            "nullable": true
+          },
+          "forwardDistanceMonitoringIndicator": {
+            "type": "string",
+            "description": "ניטור מרחק מלפנים",
+            "nullable": true
+          },
+          "forwardDistanceMonitoringRegulationSource": {
+            "type": "string",
+            "description": "מקור התקנה ניטור מרחק מלפנים",
+            "nullable": true
+          },
+          "blindSpotDetectionIndicator": {
+            "type": "string",
+            "description": "זיהוי בשטח נסתר",
+            "nullable": true
+          },
+          "adaptiveCruiseControlIndicator": {
+            "type": "string",
+            "description": "בקרת שיוט אדפטיבית",
+            "nullable": true
+          },
+          "pedestrianDetectionIndicator": {
+            "type": "string",
+            "description": "זיהוי הולכי רגל",
+            "nullable": true
+          },
+          "pedestrianDetectionRegulationSource": {
+            "type": "string",
+            "description": "מקור התקנה זיהוי הולכי רגל",
+            "nullable": true
+          },
+          "brakeAssistIndicator": {
+            "type": "string",
+            "description": "מערכת עזר לבלימה",
+            "nullable": true
+          },
+          "reverseCameraIndicator": {
+            "type": "string",
+            "description": "מצלמת רוורס",
+            "nullable": true
+          },
+          "tirePressureMonitoringIndicator": {
+            "type": "string",
+            "description": "חיישני לחץ אוויר בצמיגים",
+            "nullable": true
+          },
+          "seatbeltReminderIndicator": {
+            "type": "string",
+            "description": "חיישני חגורות בטיחות",
+            "nullable": true
+          },
+          "safetyScore": {
+            "type": "string",
+            "description": "ניקוד בטיחות",
+            "nullable": true
+          },
+          "safetyEquipmentLevel": {
+            "type": "string",
+            "description": "רמת אבזור בטיחותי",
+            "nullable": true
+          },
+          "automaticLightingForwardTravelIndicator": {
+            "type": "string",
+            "description": "תאורה אוטומטית בנסיעה קדימה",
+            "nullable": true
+          },
+          "automaticHighBeamControlIndicator": {
+            "type": "string",
+            "description": "שליטה אוטומטית באורות גבוהים",
+            "nullable": true
+          },
+          "automaticHighBeamControlRegulationSource": {
+            "type": "string",
+            "description": "מקור התקנה שליטה אוטומטית באורות גבוהים",
+            "nullable": true
+          },
+          "dangerousApproachDetectionIndicator": {
+            "type": "string",
+            "description": "זיהוי מצב התקרבות מסוכנת",
+            "nullable": true
+          },
+          "trafficSignRecognitionIndicator": {
+            "type": "string",
+            "description": "זיהוי תמרורי תנועה",
+            "nullable": true
+          },
+          "twoWheeledVehicleDetection": {
+            "type": "string",
+            "description": "זיהוי רכב דו גלגלי",
+            "nullable": true
+          },
+          "trafficSignRecognitionRegulationSource": {
+            "type": "string",
+            "description": "מקור התקנה זיהוי תמרורי תנועה",
+            "nullable": true
+          },
+          "co2Wltp": {
+            "type": "string",
+            "description": "CO2 WLTP",
+            "nullable": true
+          },
+          "hcWltp": {
+            "type": "string",
+            "description": "HC WLTP",
+            "nullable": true
+          },
+          "pmWltp": {
+            "type": "string",
+            "description": "PM WLTP",
+            "nullable": true
+          },
+          "noxWltp": {
+            "type": "string",
+            "description": "NOX WLTP",
+            "nullable": true
+          },
+          "coWltp": {
+            "type": "string",
+            "description": "CO WLTP",
+            "nullable": true
+          },
+          "co2WltpNedc": {
+            "type": "string",
+            "description": "CO2 WLTP NEDC",
+            "nullable": true
+          },
+          "activeLaneControl": {
+            "type": "string",
+            "description": "בקרת סטייה אקטיבית",
+            "nullable": true
+          },
+          "automaticBrakingReverseTravel": {
+            "type": "string",
+            "description": "בלימה אוטומטית בנסיעה לאחור",
+            "nullable": true
+          },
+          "speedControlIsa": {
+            "type": "string",
+            "description": "בקרת מהירות ISA",
+            "nullable": true
+          },
+          "emergencyBrakingPedestriansCyclists": {
+            "type": "string",
+            "description": "בלימת חירום לפני הולכי רגל ואופניים",
+            "nullable": true
+          },
+          "sideCollisionBlindSpot": {
+            "type": "string",
+            "description": "התנגשות צד שטח מת",
+            "nullable": true
+          },
+          "alcoLock": {
+            "type": "string",
+            "description": "אלכו-לוק",
+            "nullable": true
+          },
+          "batteryVoltageDg": {
+            "type": "string",
+            "description": "דרגת מתח סוללה",
+            "nullable": true
+          },
+          "commercialName": {
+            "type": "string",
+            "description": "כינוי מסחרי",
+            "nullable": true
+          },
+          "extensionData": {
+            "type": "object",
+            "additionalProperties": { },
+            "description": "שדות נוספים",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Public API shape for a WLTP make/model row.\r\nSerialized with ASP.NET's default camelCase names (`manufacturerName`, not `tozeret_nm`).\r\nBuilt from DataGovIL.Api.Models.ManufacturerModelDatastoreRecord after CKAN deserialization."
+      },
+      "ManufacturerModelRecordPagedResult": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of matching rows, when known (datastore include_total).",
+            "format": "int32",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManufacturerModelRecord"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManufacturerSyncDelta": {
+        "type": "object",
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unchanged": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Counts from a manufacturer catalog delta sync."
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "VehicleDepreciationLine": {
+        "type": "object",
+        "properties": {
+          "factor": {
+            "$ref": "#/components/schemas/DepreciationFactor"
           },
           "description": {
             "type": "string",
-            "description": "(optional)"
+            "nullable": true
           },
-          "format": {
-            "type": "string",
-            "description": "(optional)",
-            "example": "CSV"
+          "percent": {
+            "type": "number",
+            "format": "double"
           },
-          "hash": {
-            "type": "string",
-            "description": "(optional)"
-          },
-          "name": {
-            "type": "string",
-            "description": "(optional)"
-          },
-          "resource_type": {
-            "type": "string",
-            "description": "(optional)"
-          },
-          "mimetype": {
-            "type": "string",
-            "description": "(optional)",
-            "example": "text/csv"
-          },
-          "package_id": {
-            "type": "string",
-            "description": "Id of package that the resource should be added to."
-          },
-          "Frequency": {
-            "type": "string",
-            "required": true,
-            "description": "Frequency that the resource should by updated",
-            "enum": [
-              "Year",
-              "Quarter",
-              "Month",
-              "Week",
-              "Day",
-              "Times in day",
-              "NoUpdate",
-              "NotConstant"
-            ]
-          },
-          "how_update": {
-            "type": "string",
-            "required": true,
-            "description": "How this resource should be updated",
-            "enum": [
-              "Manual",
-              "Automat"
-            ]
-          },
-          "category": {
-            "type": "string",
-            "required": true,
-            "description": "Category of this resource",
-            "enum": [
-              "information",
-              "description",
-              "archive"
-            ]
-          },
-          "upload": {
-            "type": "string",
-            "format": "binary",
-            "description": "FieldStorage (optional) needs multipart/form-data"
+          "value": {
+            "type": "number",
+            "description": "Null when no price-list price was found.",
+            "format": "double",
+            "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "PackageRelationships": {
-        "type": "array",
-        "description": "See :py:func:`package_relationship_create` for the format of relationship dictionaries. when you send on package_create 'relationships_as_object' parameter, don't send object. when you send 'relationships_as_subject', don't send subject (optional)",
-        "items": {
-          "type": "object",
-          "properties": {
-            "subject": {
-              "type": "string",
-              "description": "The id or name of the dataset that is the subject of the relationship"
+      "VehicleDepreciationRecord": {
+        "type": "object",
+        "properties": {
+          "depreciationPercent": {
+            "type": "number",
+            "description": "סה\"כ אחוז שינוי ערך",
+            "format": "double"
+          },
+          "depreciationValue": {
+            "type": "number",
+            "description": "סה\"כ שינוי ערך בש\"ח. Null when no price-list price was found.",
+            "format": "double",
+            "nullable": true
+          },
+          "listPrice": {
+            "type": "number",
+            "description": "מחיר מחירון",
+            "format": "double",
+            "nullable": true
+          },
+          "estimatedValue": {
+            "type": "number",
+            "description": "ערך משוערך (מחירון + שינוי ערך)",
+            "format": "double",
+            "nullable": true
+          },
+          "carAge": {
+            "type": "number",
+            "description": "גיל הרכב בשנים, from the road entry date to today.",
+            "format": "double"
+          },
+          "kilometers": {
+            "type": "integer",
+            "description": "קילומטראז' בטסט האחרון",
+            "format": "int64",
+            "nullable": true
+          },
+          "ownerCount": {
+            "type": "integer",
+            "description": "מספר בעלים (count of ownership-history rows)",
+            "format": "int32"
+          },
+          "originality": {
+            "type": "string",
+            "description": "מקוריות (`mkoriut_nm`)",
+            "nullable": true
+          },
+          "ownershipType": {
+            "type": "string",
+            "description": "סוג הבעלות שנבחר לחישוב (the highest-loss type across owners and originality)",
+            "nullable": true
+          },
+          "vehicleCategory": {
+            "$ref": "#/components/schemas/DepreciationVehicleCategory"
+          },
+          "ownerCategory": {
+            "$ref": "#/components/schemas/DepreciationOwnerCategory"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleDepreciationLine"
             },
-            "object": {
-              "type": "string",
-              "description": "The id or name of the dataset that is the object of the relationship"
-            },
-            "type": {
-              "type": "string",
-              "description": "The type of the relationship",
-              "enum": [
-                "depends_on",
-                "dependency_of",
-                "derives_from",
-                "has_derivation",
-                "links_to",
-                "linked_from",
-                "child_of",
-                "parent_of"
-              ],
-              "default": "child_of"
-            },
-            "comment": {
-              "type": "string",
-              "description": "A comment about the relationship (optional)"
-            }
+            "nullable": true
           }
-        }
+        },
+        "additionalProperties": false,
+        "description": "Vehicle value adjustment (ירידת ערך) from kilometers, owner count, and ownership type.\r\nPercents are signed: negative lowers the value, positive raises it."
+      },
+      "VehicleHistoryRecord": {
+        "type": "object",
+        "properties": {
+          "registrationNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "technical": {
+            "$ref": "#/components/schemas/VehicleTechnicalHistoryRecord"
+          },
+          "ownershipHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleOwnershipHistoryRecord"
+            },
+            "description": "Ownership timeline rows (typically multiple), newest first when sortable.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Combined vehicle history from the technical and ownership datastore resources,\r\nkeyed by registration number (`mispar_rechev`)."
+      },
+      "VehicleOwnershipHistoryRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "ownershipYearMonth": {
+            "type": "string",
+            "nullable": true
+          },
+          "ownershipType": {
+            "type": "string",
+            "nullable": true
+          },
+          "extensionData": {
+            "type": "object",
+            "additionalProperties": { },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Public API shape for one ownership-history row.\r\nDataGovIL.Api.Models.VehicleOwnershipHistoryRecord.OwnershipYearMonth is from `baalut_dt` (typically `yyyyMM`)."
+      },
+      "VehiclePriceListRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "importerCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "importerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelType": {
+            "type": "string",
+            "nullable": true
+          },
+          "manufacturerCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "manufacturerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelName": {
+            "type": "string",
+            "nullable": true
+          },
+          "manufactureYear": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "string",
+            "nullable": true
+          },
+          "commercialName": {
+            "type": "string",
+            "nullable": true
+          },
+          "extensionData": {
+            "type": "object",
+            "additionalProperties": { },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Public API shape for a new-vehicle price-list row (יבואנים ומחירוני רכב חדש).\r\nSerialized with ASP.NET camelCase names."
+      },
+      "VehicleRecallRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "מזהה",
+            "nullable": true
+          },
+          "recallId": {
+            "type": "string",
+            "description": "מזהה ריקול",
+            "nullable": true
+          },
+          "recallType": {
+            "type": "string",
+            "description": "סוג ריקול",
+            "nullable": true
+          },
+          "faultType": {
+            "type": "string",
+            "description": "סוג תקלה",
+            "nullable": true
+          },
+          "faultDescription": {
+            "type": "string",
+            "description": "תיאור תקלה",
+            "nullable": true
+          },
+          "openedDate": {
+            "type": "string",
+            "description": "תאריך פתיחה",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "ריקול שלא בוצע"
+      },
+      "VehicleRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "מזהה",
+            "nullable": true
+          },
+          "registrationNumber": {
+            "type": "string",
+            "description": "מספר רכב",
+            "nullable": true
+          },
+          "manufacturerCode": {
+            "type": "string",
+            "description": "קוד תוצר",
+            "nullable": true
+          },
+          "modelType": {
+            "type": "string",
+            "description": "סוג דגם",
+            "nullable": true
+          },
+          "manufacturerName": {
+            "type": "string",
+            "description": "תוצר",
+            "nullable": true
+          },
+          "modelCode": {
+            "type": "string",
+            "description": "קוד דגם",
+            "nullable": true
+          },
+          "modelName": {
+            "type": "string",
+            "description": "דגם",
+            "nullable": true
+          },
+          "vehicleTypeCode": {
+            "type": "string",
+            "description": "קוד סוג רכב",
+            "nullable": true
+          },
+          "vehicleTypeName": {
+            "type": "string",
+            "description": "סוג רכב",
+            "nullable": true
+          },
+          "trimLevel": {
+            "type": "string",
+            "description": "רמת גימור",
+            "nullable": true
+          },
+          "safetyEquipmentLevel": {
+            "type": "string",
+            "description": "רמת אבזור בטיחותי",
+            "nullable": true
+          },
+          "pollutionGroup": {
+            "type": "string",
+            "description": "קבוצת זיהום",
+            "nullable": true
+          },
+          "manufactureYear": {
+            "type": "string",
+            "description": "שנת יצור",
+            "nullable": true
+          },
+          "engineManufacturer": {
+            "type": "string",
+            "description": "תוצר מנוע",
+            "nullable": true
+          },
+          "engineModel": {
+            "type": "string",
+            "description": "דגם מנוע",
+            "nullable": true
+          },
+          "engineNumber": {
+            "type": "string",
+            "description": "מספר מנוע",
+            "nullable": true
+          },
+          "totalWeight": {
+            "type": "string",
+            "description": "משקל כולל",
+            "nullable": true
+          },
+          "lastTestDate": {
+            "type": "string",
+            "description": "תאריך מבחן אחרון",
+            "nullable": true
+          },
+          "testValidUntil": {
+            "type": "string",
+            "description": "תוקף",
+            "nullable": true
+          },
+          "cancellationDate": {
+            "type": "string",
+            "description": "תאריך ביטול",
+            "nullable": true
+          },
+          "ownershipType": {
+            "type": "string",
+            "description": "בעלות",
+            "nullable": true
+          },
+          "chassisNumber": {
+            "type": "string",
+            "description": "מספר שילדה",
+            "nullable": true
+          },
+          "colorCode": {
+            "type": "string",
+            "description": "קוד צבע",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "description": "צבע רכב",
+            "nullable": true
+          },
+          "frontTire": {
+            "type": "string",
+            "description": "צמיג קדמי",
+            "nullable": true
+          },
+          "rearTire": {
+            "type": "string",
+            "description": "צמיג אחורי",
+            "nullable": true
+          },
+          "fuelType": {
+            "type": "string",
+            "description": "סוג דלק",
+            "nullable": true
+          },
+          "registrationOrder": {
+            "type": "string",
+            "description": "הוראת רישום",
+            "nullable": true
+          },
+          "roadEntryDate": {
+            "type": "string",
+            "description": "מועד עליה לכביש",
+            "nullable": true
+          },
+          "estimatedWarrantyEndDate": {
+            "type": "string",
+            "format": "date",
+            "description": "סיום אחריות יצרן משוערת: roadEntryDate + 36 months. Null without a road entry date.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "estimatedWarrantyActive": {
+            "type": "boolean",
+            "description": "אחריות יצרן משוערת בתוקף. Null without a road entry date.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "updatedDate": {
+            "type": "string",
+            "description": "תאריך עדכון",
+            "nullable": true
+          },
+          "importType": {
+            "type": "string",
+            "description": "סוג יבוא",
+            "nullable": true
+          },
+          "commercialName": {
+            "type": "string",
+            "description": "כינוי מסחרי",
+            "nullable": true
+          },
+          "isPermanentlyCancelled": {
+            "type": "boolean",
+            "description": "ביטול סופי"
+          },
+          "isInactive": {
+            "type": "boolean",
+            "description": "לא פעיל"
+          },
+          "isSafetyDiscountEligible": {
+            "type": "boolean",
+            "description": "זכאי להנחה לאחר התקנת מערכות בטיחות"
+          },
+          "manufacturerModel": {
+            "$ref": "#/components/schemas/ManufacturerModelRecord"
+          },
+          "recalls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleRecallRecord"
+            },
+            "description": "ריקולים",
+            "nullable": true
+          },
+          "history": {
+            "$ref": "#/components/schemas/VehicleHistoryRecord"
+          },
+          "depreciation": {
+            "$ref": "#/components/schemas/VehicleDepreciationRecord"
+          },
+          "extensionData": {
+            "type": "object",
+            "additionalProperties": { },
+            "description": "שדות נוספים",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Public API shape for a vehicle registration row (active, inactive, or permanently cancelled).\r\nSerialized with ASP.NET's default camelCase names.\r\nBuilt from DataGovIL.Api.Models.VehicleDatastoreRecord, DataGovIL.Api.Models.VehicleCancelledDatastoreRecord,\r\nDataGovIL.Api.Models.VehicleInactiveWithoutModelCodeDatastoreRecord, DataGovIL.Api.Models.VehicleSafetyDiscountDatastoreRecord,\r\nor DataGovIL.Api.Models.VehiclePersonalImportDatastoreRecord."
+      },
+      "VehicleRecordPagedResult": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "description": "Total number of matching rows, when known (datastore include_total).",
+            "format": "int32",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleRecord"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VehicleTechnicalHistoryRecord": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "engineNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastTestOdometer": {
+            "type": "string",
+            "nullable": true
+          },
+          "structureChangeIndicator": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "lpgChangeIndicator": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "colorChangeIndicator": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "tireChangeIndicator": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "firstRegistrationDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "originalityName": {
+            "type": "string",
+            "nullable": true
+          },
+          "extensionData": {
+            "type": "object",
+            "additionalProperties": { },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Public API shape for technical vehicle history.\r\n`*Indicator` fields are bool (datastore 0/1).\r\nDataGovIL.Api.Models.VehicleTechnicalHistoryRecord.FirstRegistrationDate is from `rishum_rishon_dt`."
       }
     }
   }

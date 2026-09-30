@@ -11,7 +11,7 @@ public interface IManufacturerExportStatusStore
 
     void UpdateProgress(int pagesFetched, int recordsSeen, int uniqueRows, int? estimatedTotalRawRows);
 
-    void MarkCompleted(int uniqueRows, string outputFile);
+    void MarkCompleted(int uniqueRows, string outputFile, IReadOnlyDictionary<string, ManufacturerSyncDelta>? tables = null);
 
     void MarkFailed(string error);
 }
@@ -71,7 +71,7 @@ public sealed class ManufacturerExportStatusStore : IManufacturerExportStatusSto
         }
     }
 
-    public void MarkCompleted(int uniqueRows, string outputFile)
+    public void MarkCompleted(int uniqueRows, string outputFile, IReadOnlyDictionary<string, ManufacturerSyncDelta>? tables = null)
     {
         lock (_gate)
         {
@@ -79,13 +79,23 @@ public sealed class ManufacturerExportStatusStore : IManufacturerExportStatusSto
                 return;
 
             var completedAt = DateTimeOffset.UtcNow;
+            var deltaSuffix = tables is { Count: > 0 }
+                ? "; " + string.Join("; ", tables.Select(t =>
+                    $"{t.Key}: inserted={t.Value.Inserted}, updated={t.Value.Updated}, deleted={t.Value.Deleted}, unchanged={t.Value.Unchanged}"))
+                : string.Empty;
+
             _status = _status with
             {
                 State = ManufacturerExportStates.Completed,
-                Message = $"completed at {completedAt:O}, {uniqueRows} rows",
+                Message = $"completed at {completedAt:O}, {uniqueRows} rows{deltaSuffix}",
                 UniqueRowCount = uniqueRows,
                 CompletedAt = completedAt,
                 OutputFile = outputFile,
+                Inserted = tables?.Values.Sum(d => d.Inserted),
+                Updated = tables?.Values.Sum(d => d.Updated),
+                Deleted = tables?.Values.Sum(d => d.Deleted),
+                Unchanged = tables?.Values.Sum(d => d.Unchanged),
+                Tables = tables,
                 Error = null
             };
             Interlocked.Exchange(ref _busy, 0);

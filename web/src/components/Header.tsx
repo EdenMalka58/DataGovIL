@@ -1,25 +1,58 @@
+import type { Theme } from "../lib/storage";
+import { he } from "../strings.he";
+import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 
 type HeaderProps = {
+  compact: boolean;
+  onHome: () => void;
+  theme: Theme;
+  onToggleTheme: () => void;
   comparisonCount: number;
+  comparisonActive: boolean;
+  onOpenCompare: () => void;
 };
 
-export function Header({ comparisonCount }: HeaderProps) {
+export function Header({
+  compact,
+  onHome,
+  theme,
+  onToggleTheme,
+  comparisonCount,
+  comparisonActive,
+  onOpenCompare,
+}: HeaderProps) {
+  const compareEmpty = comparisonCount === 0;
+
   return (
-    <header className="sticky top-0 z-30 border-b border-line/80 bg-paper/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Logo />
-        <nav className="flex items-center gap-2 sm:gap-3">
-          <a
-            href="#compare"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5 text-sm font-semibold text-ink-soft no-underline transition hover:border-brand/40 hover:text-brand"
+    <header className={`topbar ${compact ? "topbar--compact" : ""}`}>
+      <div className="container topbar__inner">
+        <Logo theme={theme} onClick={onHome} />
+
+        <div className="topbar__actions">
+          <button
+            type="button"
+            className={`pill-btn ${compareEmpty ? "is-empty" : ""} ${comparisonActive ? "is-active" : ""}`}
+            onClick={onOpenCompare}
+            aria-label={`${he.compare.openCompare} (${comparisonCount})`}
+            aria-current={comparisonActive ? "page" : undefined}
+            title={compareEmpty ? he.compare.headerEmptyHint : he.compare.openCompare}
           >
-            <span>ההשוואה שלי</span>
-            <span className="grid min-w-6 place-items-center rounded-full bg-ink px-1.5 text-[0.7rem] text-paper">
-              {comparisonCount}
-            </span>
-          </a>
-        </nav>
+            <Icon name="compare" size={18} />
+            <span className="pill-btn__label">{he.compare.headerCount}</span>
+            <span className="pill-btn__label-short">{he.compare.headerShort}</span>
+            <span className="pill-btn__count">{comparisonCount}</span>
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={onToggleTheme}
+            aria-label={theme === "dark" ? he.theme.toLight : he.theme.toDark}
+            title={theme === "dark" ? he.theme.toLight : he.theme.toDark}
+          >
+            <Icon name={theme === "dark" ? "sun" : "moon"} />
+          </button>
+        </div>
       </div>
     </header>
   );

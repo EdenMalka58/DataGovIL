@@ -1,0 +1,210 @@
+/* Design tokens. Every color, radius, shadow and spacing value lives here. */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg: #f5f7fb;
+  --bg-accent-1: rgba(0, 120, 240, 0.12);
+  --bg-accent-2: rgba(0, 168, 248, 0.1);
+  --surface: #ffffff;
+  --surface-2: #f1f4fa;
+  --surface-3: #e8ecf5;
+  --glass: rgba(255, 255, 255, 0.72);
+  --border: #e3e8f1;
+  --border-strong: #cbd3e1;
+
+  /* Text */
+  --ink: #0e1628;
+  --ink-2: #3a4760;
+  --ink-3: #5d6a82;
+  --ink-inverse: #ffffff;
+
+  /* Brand — sampled from logo-header.png (#0078f0 lens, #00a8f8 highlight, #002858 navy) */
+  --primary: #0078f0;
+  --primary-strong: #0064cc;
+  --primary-soft: #e7f3ff;
+  --primary-ink: #0056b8;
+  --on-primary: #ffffff;
+  --accent: #00a8f8;
+
+  /* Status: base / soft background / AA text */
+  --ok: #16a34a;
+  --ok-bg: #e8f7ee;
+  --ok-ink: #0f6b33;
+  --warn: #d97706;
+  --warn-bg: #fff4e0;
+  --warn-ink: #8a4600;
+  --bad: #dc2626;
+  --bad-bg: #fdeceb;
+  --bad-ink: #a31919;
+  --info: #2563eb;
+  --info-bg: #eaf1fe;
+  --info-ink: #1d4ed8;
+  --muted-bg: #eef1f6;
+  --muted-ink: #5d6a82;
+
+  /* Ownership tones (timeline) */
+  --own-private: #0078f0;
+  --own-commercial: #ea7a0c;
+  --own-public: #64748b;
+
+  /* License plate */
+  --il-blue: #0038b8;
+
+  /* Shadows: outer shadow + thin inner highlight */
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.05), 0 4px 14px rgba(16, 24, 40, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-2: 0 2px 6px rgba(16, 24, 40, 0.06), 0 14px 32px rgba(16, 24, 40, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-3: 0 10px 20px rgba(16, 24, 40, 0.08), 0 28px 64px rgba(16, 24, 40, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --ring: 0 0 0 3px rgba(0, 120, 240, 0.35);
+
+  /* Radii */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* Spacing (4px scale) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* Typography */
+  --font-sans: "Heebo", "Assistant", "Segoe UI", system-ui, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Consolas, monospace;
+  --fs-xs: 0.8125rem; /* 13px floor */
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  --fs-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-2xl: clamp(1.5rem, 1.25rem + 1.2vw, 2rem);
+  --fs-3xl: clamp(1.875rem, 1.4rem + 2.2vw, 3rem);
+  --fs-display: clamp(2.125rem, 1.5rem + 3vw, 3.75rem);
+  --lh-body: 1.6;
+  --lh-tight: 1.25;
+
+  /* Layout */
+  --container: 1240px;
+  --topbar-h: 64px;
+  --tap: 44px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-1: 150ms;
+  --dur-2: 280ms;
+  --dur-3: 520ms;
+}
+
+/* Dark — manual toggle */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0f1d;
+  --bg-accent-1: rgba(0, 168, 248, 0.16);
+  --bg-accent-2: rgba(0, 120, 240, 0.08);
+  --surface: #111829;
+  --surface-2: #172036;
+  --surface-3: #1e2944;
+  --glass: rgba(13, 19, 34, 0.72);
+  --border: #243049;
+  --border-strong: #34425f;
+  --ink: #e9eef8;
+  --ink-2: #bcc6da;
+  --ink-3: #95a1b9;
+  --ink-inverse: #0a0f1d;
+  --primary: #3aaeff;
+  --primary-strong: #6ec4ff;
+  --primary-soft: #0e2744;
+  --primary-ink: #b7e3ff;
+  --on-primary: #041018;
+  --accent: #00c8f8;
+  --ok: #4ade80;
+  --ok-bg: rgba(34, 197, 94, 0.14);
+  --ok-ink: #86efac;
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, 0.14);
+  --warn-ink: #fcd34d;
+  --bad: #f87171;
+  --bad-bg: rgba(248, 113, 113, 0.15);
+  --bad-ink: #fca5a5;
+  --info: #60a5fa;
+  --info-bg: rgba(96, 165, 250, 0.14);
+  --info-ink: #93c5fd;
+  --muted-bg: rgba(148, 163, 184, 0.12);
+  --muted-ink: #a3aec4;
+  --own-private: #3aaeff;
+  --own-commercial: #fb923c;
+  --own-public: #94a3b8;
+  --shadow-1: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 6px 18px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 0 0 1px rgba(58, 174, 255, 0.18), 0 12px 32px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(0, 168, 248, 0.08);
+  --shadow-3: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(0, 168, 248, 0.1);
+  --ring: 0 0 0 3px rgba(58, 174, 255, 0.5);
+}
+
+/* Dark — follow the OS unless the user explicitly chose light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0a0f1d;
+    --bg-accent-1: rgba(0, 168, 248, 0.16);
+    --bg-accent-2: rgba(0, 120, 240, 0.08);
+    --surface: #111829;
+    --surface-2: #172036;
+    --surface-3: #1e2944;
+    --glass: rgba(13, 19, 34, 0.72);
+    --border: #243049;
+    --border-strong: #34425f;
+    --ink: #e9eef8;
+    --ink-2: #bcc6da;
+    --ink-3: #95a1b9;
+    --ink-inverse: #0a0f1d;
+    --primary: #3aaeff;
+    --primary-strong: #6ec4ff;
+    --primary-soft: #0e2744;
+    --primary-ink: #b7e3ff;
+    --on-primary: #041018;
+    --accent: #00c8f8;
+    --ok: #4ade80;
+    --ok-bg: rgba(34, 197, 94, 0.14);
+    --ok-ink: #86efac;
+    --warn: #fbbf24;
+    --warn-bg: rgba(251, 191, 36, 0.14);
+    --warn-ink: #fcd34d;
+    --bad: #f87171;
+    --bad-bg: rgba(248, 113, 113, 0.15);
+    --bad-ink: #fca5a5;
+    --info: #60a5fa;
+    --info-bg: rgba(96, 165, 250, 0.14);
+    --info-ink: #93c5fd;
+    --muted-bg: rgba(148, 163, 184, 0.12);
+    --muted-ink: #a3aec4;
+    --own-private: #3aaeff;
+    --own-commercial: #fb923c;
+    --own-public: #94a3b8;
+    --shadow-1: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 6px 18px rgba(0, 0, 0, 0.35);
+    --shadow-2: 0 0 0 1px rgba(58, 174, 255, 0.18), 0 12px 32px rgba(0, 0, 0, 0.45),
+      0 0 24px rgba(0, 168, 248, 0.08);
+    --shadow-3: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6),
+      0 0 40px rgba(0, 168, 248, 0.1);
+    --ring: 0 0 0 3px rgba(58, 174, 255, 0.5);
+  }
+}
+
+@media (min-width: 1201px) {
+  :root {
+    --topbar-h: 68px;
+  }
+}
