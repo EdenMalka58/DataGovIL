@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo Animation Preview</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0a;
+      font-family: system-ui, sans-serif;
+      color: #eee;
+    }
+    #anim {
+      width: 400px;
+      max-width: 90vw;
+      height: 160px;
+    }
+    h1 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+    p { opacity: 0.7; font-size: 0.9rem; }
+    button {
+      margin-top: 1.5rem;
+      padding: 0.6rem 1.4rem;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    button:hover { background: #1557b0; }
+  </style>
+</head>
+<body>
+  <h1>PipsiBix Logo Animation</h1>
+  <p>Lottie preview (3s loop)</p>
+  <div id="anim"></div>
+  <button onclick="anim.goToAndPlay(0)">Replay</button>
+  <script>
+    const anim = lottie.loadAnimation({
+      container: document.getElementById('anim'),
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: 'logo-animation.json'   // embedded version
+    });
+  </script>
+</body>
+</html>

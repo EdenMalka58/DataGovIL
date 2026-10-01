@@ -50,8 +50,10 @@ export function BuyerSummary({ verdict, flags, depreciation, valueDisabled }: Bu
             <ToneIcon tone={flag.tone} size={20} />
             {flag.anchor ? (
               <button type="button" className="flag__link" onClick={() => scrollToAnchor(flag.anchor!)}>
-                {flag.text}
+                {flag.bold ? <strong>{flag.text}</strong> : flag.text}
               </button>
+            ) : flag.bold ? (
+              <strong>{flag.text}</strong>
             ) : (
               <span>{flag.text}</span>
             )}
@@ -68,9 +70,9 @@ export function BuyerSummary({ verdict, flags, depreciation, valueDisabled }: Bu
                 {formatCurrency(estimated)}
               </strong>
             ) : null}
-            {percent != null && (
-              <span className={`delta ${percent > 0 ? "delta--up" : percent < 0 ? "delta--down" : ""}`}>
-                <Icon name={percent >= 0 ? "arrowUp" : "arrowDown"} size={14} />
+            {percent != null && percent !== 0 && (
+              <span className={`delta ${percent > 0 ? "delta--up" : "delta--down"}`}>
+                <Icon name={percent > 0 ? "arrowUp" : "arrowDown"} size={14} />
                 {formatPercent(percent)}
               </span>
             )}

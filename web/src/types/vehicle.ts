@@ -1,6 +1,48 @@
 import type { VehicleEnergyCost } from "./energyCost";
 import type { ManufacturerModelRecord } from "./manufacturer";
 
+/** One closure month (`yyyyMM`) and how many new vehicles of this model code were registered. */
+export interface VehicleModelMonthlyCount {
+  month: number;
+  count: number;
+}
+
+/** New registrations of this model code, summed across every closure month in the dataset. */
+export interface VehicleModelPopularity {
+  totalCount: number;
+  months: VehicleModelMonthlyCount[];
+}
+
+/** Active and inactive vehicles of this model code in one manufacture year. */
+export interface VehicleModelYearFleet {
+  modelYear: number;
+  activeCount: number;
+  inactiveCount: number;
+  /** Active plus inactive: vehicles of this model year that were registered. */
+  registeredCount: number;
+  /** Active share of the registered total, in percent. */
+  activeSharePercent?: number | null;
+}
+
+/** Every manufacture year of this model code, plus the sum across those years. */
+export interface VehicleModelFleet {
+  years: VehicleModelYearFleet[];
+  activeCount: number;
+  inactiveCount: number;
+  registeredCount: number;
+  activeSharePercent?: number | null;
+}
+
+/** The data.gov.il registry a vehicle lookup was answered from. */
+export type VehicleDataSource =
+  | "PrivateAndCommercial"
+  | "PublicTransport"
+  | "HeavyOrNoModelCode"
+  | "TwoWheeled"
+  | "PermanentlyCancelled"
+  | "Inactive"
+  | "PersonalImport";
+
 /**
  * Matches the JSON shape returned by GET /api/vehicles/{registrationNumber}.
  * Null values are omitted by the server, and `isInactive` / `isSafetyDiscountEligible`
@@ -8,6 +50,8 @@ import type { ManufacturerModelRecord } from "./manufacturer";
  */
 export interface VehicleRecord {
   id?: string | null;
+  /** Registry that answered the lookup. Omitted on rows that did not come from a lookup. */
+  source?: VehicleDataSource | null;
   registrationNumber?: string | null;
   manufacturerCode?: string | null;
   modelType?: string | null;
@@ -16,6 +60,9 @@ export interface VehicleRecord {
   modelName?: string | null;
   vehicleTypeCode?: string | null;
   vehicleTypeName?: string | null;
+  /** EU vehicle category, e.g. M3 (bus), N1 (light commercial), L3 (motorcycle). */
+  euVehicleTypeCode?: string | null;
+  euVehicleTypeName?: string | null;
   trimLevel?: string | null;
   safetyEquipmentLevel?: string | null;
   pollutionGroup?: string | null;
@@ -27,6 +74,8 @@ export interface VehicleRecord {
   lastTestDate?: string | null;
   testValidUntil?: string | null;
   cancellationDate?: string | null;
+  /** Public vehicles only: הפקדה / פירוק / אובדן גמור. Omitted when not cancelled. */
+  cancellationReason?: string | null;
   ownershipType?: string | null;
   chassisNumber?: string | null;
   colorCode?: string | null;
@@ -43,6 +92,13 @@ export interface VehicleRecord {
   updatedDate?: string | null;
   importType?: string | null;
   commercialName?: string | null;
+  seatCount?: string | null;
+  seatsBesideDriver?: string | null;
+  /** Two-wheelers only, in kW. */
+  enginePowerKw?: string | null;
+  towHitch?: string | null;
+  axles?: string | null;
+  originality?: string | null;
   isPermanentlyCancelled?: boolean;
   isInactive?: boolean;
   isSafetyDiscountEligible?: boolean;
@@ -52,6 +108,10 @@ export interface VehicleRecord {
   depreciation?: VehicleDepreciationRecord | null;
   /** Estimated monthly energy cost at the default mileage. */
   energyCost?: VehicleEnergyCost | null;
+  /** New registrations of this model code, total and per closure month. Omitted when unknown. */
+  modelPopularity?: VehicleModelPopularity | null;
+  /** Active and inactive counts for this model code, by manufacture year and in total. Omitted when unknown. */
+  modelFleet?: VehicleModelFleet | null;
   extensionData?: Record<string, unknown> | null;
 }
 

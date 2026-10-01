@@ -2,15 +2,19 @@ import type { ApiError } from "../api/client";
 import { he } from "../strings.he";
 import type { VehicleRecord } from "../types/vehicle";
 import { Icon } from "./Icon";
+import { LogoLottie } from "./LogoLottie";
 import { Ltr, Plate } from "./ui";
 import { formatDate } from "../lib/format";
 
 export function LoadingSkeleton() {
   return (
     <div className="container result-layout" aria-busy="true">
-      <p className="sr-only" role="status" aria-live="polite">
-        {he.states.loading}
-      </p>
+      <div className="load-status">
+        <LogoLottie />
+        <p className="load-status__text" role="status" aria-live="polite">
+          {he.states.loading}
+        </p>
+      </div>
       <div className="skeleton-card skeleton-hero" aria-hidden="true">
         <div className="sk sk--line sk--w40" />
         <div className="sk sk--title sk--w70" />
@@ -161,6 +165,9 @@ export function PartialResult({ vehicle, onNewSearch }: { vehicle: VehicleRecord
         <h1 id="state-title" className="state__title">
           {he.states.partialTitle}
         </h1>
+        <p className="state__text">
+          <strong>{he.summary.flags.safetyDiscount}</strong>
+        </p>
         <p className="state__text">{he.states.partialText}</p>
         {updated && (
           <p className="state__meta">

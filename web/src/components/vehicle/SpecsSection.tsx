@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ApiError } from "../../api/client";
 import { lookupPriceList } from "../../api/vehicles";
 import { buildFieldGroups, groupCellCount, type FieldGroup, type GroupId } from "../../lib/fields";
@@ -8,8 +8,10 @@ import { he } from "../../strings.he";
 import type { VehiclePriceListRecord } from "../../types/priceList";
 import type { VehicleRecord } from "../../types/vehicle";
 import { Icon, type IconName } from "../Icon";
+import { LogoLottie } from "../LogoLottie";
 import { Ltr, SectionHeader } from "../ui";
 import { Accordion, DataGrid } from "./Accordion";
+import { VehicleLicenseButton } from "./VehicleLicense";
 
 const GROUP_ICON: Record<GroupId, IconName> = {
   identity: "chassis",
@@ -89,7 +91,13 @@ export function SpecsSection({ vehicle, printMode }: SpecsSectionProps) {
 
       <div className="accordion-stack">
         {groups.map((g) => (
-          <GroupAccordion key={g.id} group={g} open={isOpen(`group-${g.id}`)} onToggle={toggle} />
+          <GroupAccordion
+            key={g.id}
+            group={g}
+            open={isOpen(`group-${g.id}`)}
+            onToggle={toggle}
+            extra={g.id === "identity" ? <VehicleLicenseButton vehicle={vehicle} /> : undefined}
+          />
         ))}
 
         {hasPriceList && (
@@ -110,7 +118,17 @@ export function SpecsSection({ vehicle, printMode }: SpecsSectionProps) {
   );
 }
 
-function GroupAccordion({ group, open, onToggle }: { group: FieldGroup; open: boolean; onToggle: (id: string) => void }) {
+function GroupAccordion({
+  group,
+  open,
+  onToggle,
+  extra,
+}: {
+  group: FieldGroup;
+  open: boolean;
+  onToggle: (id: string) => void;
+  extra?: ReactNode;
+}) {
   return (
     <Accordion
       id={`group-${group.id}`}
@@ -122,6 +140,7 @@ function GroupAccordion({ group, open, onToggle }: { group: FieldGroup; open: bo
     >
       {() => (
         <>
+          {extra && <div className="group-actions no-print">{extra}</div>}
           {group.safety?.level != null && (
             <LevelScale
               icon="shield"
@@ -269,7 +288,7 @@ function PriceListTable({ manufacturer, model, year }: { manufacturer: string; m
   if (state.status === "loading") {
     return (
       <p className="inline-status" role="status" aria-live="polite">
-        <span className="spinner" aria-hidden="true" />
+        <LogoLottie size="inline" />
         {he.priceList.loading}
       </p>
     );

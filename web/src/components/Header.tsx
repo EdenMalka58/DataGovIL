@@ -11,6 +11,7 @@ type HeaderProps = {
   comparisonCount: number;
   comparisonActive: boolean;
   onOpenCompare: () => void;
+  back?: { label: string; onClick: () => void } | null;
 };
 
 export function Header({
@@ -21,6 +22,7 @@ export function Header({
   comparisonCount,
   comparisonActive,
   onOpenCompare,
+  back,
 }: HeaderProps) {
   const compareEmpty = comparisonCount === 0;
 
@@ -52,6 +54,12 @@ export function Header({
           >
             <Icon name={theme === "dark" ? "sun" : "moon"} />
           </button>
+          {back && (
+            <button type="button" className="btn btn--ghost topbar__back" onClick={back.onClick} aria-label={back.label}>
+              <span className="topbar__back-label">{back.label}</span>
+              <Icon name="chevronStart" size={18} className="flip-rtl" />
+            </button>
+          )}
         </div>
       </div>
     </header>

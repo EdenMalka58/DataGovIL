@@ -93,12 +93,18 @@ public class VehiclesController : ControllerBase
 
     /// <summary>
     /// Look up a single vehicle by its exact registration number (מספר רישוי).
-    /// When the active registries miss, falls back to permanently-cancelled ("ביטול סופי")
-    /// resources and then to inactive ("לא פעיל") resources, then personal-import vehicles.
-    /// A found vehicle is also checked
+    /// When the private/commercial registry misses, tries active public vehicles (taxis, shared taxis, buses),
+    /// vehicles over 3.5 tons or without a model code (trucks, tractors, trailers), and two-wheelers
+    /// (motorcycles, scooters), then permanently-cancelled ("ביטול סופי") resources, inactive ("לא פעיל")
+    /// resources, and personal-import vehicles. <c>source</c> names the registry that answered and
+    /// <c>vehicleTypeName</c> carries that registry's vehicle type. A found vehicle is also checked
     /// against the safety-systems discount list and the open-recall list, and gets a
     /// depreciation calculation (kilometers, owner count, ownership type) from its history and price list,
-    /// and the estimated monthly energy cost at the default mileage (<c>energyCost</c>).
+    /// the estimated monthly energy cost at the default mileage (<c>energyCost</c>),
+    /// the new-registration popularity of its model code
+    /// (<c>modelPopularity</c>: total across every closure month, plus the count per month),
+    /// and how many vehicles of that model code are still active in every manufacture year
+    /// (<c>modelFleet</c>: each year plus the sum across years).
     /// </summary>
     /// <param name="registrationNumber">e.g. "12345678".</param>
     [HttpGet("{registrationNumber}")]

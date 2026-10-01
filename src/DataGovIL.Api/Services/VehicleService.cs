@@ -12,10 +12,14 @@ public interface IVehicleService
 {
     /// <summary>
     /// Looks up a vehicle by exact registration number. Checks the active private/commercial
-    /// resources first, then permanently-cancelled ("ביטול סופי") resources, then inactive
-    /// ("לא פעיל") resources, then personal-import vehicles. A found vehicle is also checked against the safety-systems
+    /// resources first, then active public vehicles (taxis, buses), heavy / no-model-code vehicles,
+    /// and two-wheelers, then permanently-cancelled ("ביטול סופי") resources, then inactive
+    /// ("לא פעיל") resources, then personal-import vehicles. <see cref="VehicleRecord.Source"/> names
+    /// the resource that answered. A found vehicle is also checked against the safety-systems
     /// discount list and the open-recall list, and gets a depreciation calculation from its history and price list
-    /// plus an estimated monthly energy cost at the default mileage and an estimated annual license fee.
+    /// plus an estimated monthly energy cost at the default mileage, an estimated annual license fee,
+    /// the new-registration counts of its model code across every closure month,
+    /// and the active / inactive counts of that model code and manufacture year.
     /// </summary>
     Task<VehicleRecord?> SearchByRegistrationNumberAsync(string registrationNumber, CancellationToken ct = default);
 
@@ -61,6 +65,12 @@ public class VehicleService : IVehicleService
 
         var found = await FindActiveInResourceAsync(_options.PrivateAndCommercialVehiclesResourceId, normalized, ct)
             ?? await FindContinuationAsync(normalized, ct)
+            ?? await FindByPlateAsync<VehiclePublicDatastoreRecord>(
+                _options.PublicVehiclesResourceId, normalized, VehicleRecord.FromPublic, ct)
+            ?? await FindByPlateAsync<VehicleHeavyDatastoreRecord>(
+                _options.HeavyVehiclesResourceId, normalized, VehicleRecord.FromHeavy, ct)
+            ?? await FindByPlateAsync<VehicleTwoWheeledDatastoreRecord>(
+                _options.TwoWheeledVehiclesResourceId, normalized, VehicleRecord.FromTwoWheeled, ct)
             ?? await FindCancelledInResourceAsync(
                 _options.PermanentlyCancelledVehiclesResourceId, normalized, preferNumericFilter: true, ct)
             ?? await FindCancelledInResourceAsync(
@@ -106,7 +116,12 @@ public class VehicleService : IVehicleService
         var technicalTask = FetchTechnicalHistoryAsync(plateFilter, ct);
         var ownershipTask = FetchOwnershipHistoryAsync(plateFilter, ct);
         var priceListTask = FindPriceListAsync(vehicle, ct);
-        await Task.WhenAll(technicalTask, ownershipTask, priceListTask).ConfigureAwait(false);
+        var popularityTask = FindModelPopularityAsync(vehicle, ct);
+        var fleetTask = FindModelFleetAsync(vehicle, ct);
+        await Task.WhenAll(technicalTask, ownershipTask, priceListTask, popularityTask, fleetTask).ConfigureAwait(false);
+
+        vehicle.ModelPopularity = await popularityTask.ConfigureAwait(false);
+        vehicle.ModelFleet = await fleetTask.ConfigureAwait(false);
 
         var history = new VehicleHistoryRecord
         {
@@ -313,8 +328,32 @@ public class VehicleService : IVehicleService
     {
         var found = await FindActiveInResourceAsync(_options.InactiveVehiclesWithModelCodeResourceId, registrationNumber, ct);
         if (found is not null)
+        {
             found.IsInactive = true;
+            found.Source = VehicleDataSource.Inactive;
+        }
         return found;
+    }
+
+    private async Task<VehicleRecord?> FindByPlateAsync<TRow>(
+        string resourceId, string registrationNumber, Func<TRow, VehicleRecord> map, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            return null;
+
+        var query = new DatastoreSearchQuery
+        {
+            ResourceId = resourceId,
+            Filters = new Dictionary<string, object>
+            {
+                ["mispar_rechev"] = ToNumericFilterValue(registrationNumber)
+            },
+            Limit = 1
+        };
+
+        var result = await _client.DatastoreSearchAsync<TRow>(query, ct);
+        var row = result.Records.FirstOrDefault();
+        return row is null ? null : map(row);
     }
 
     private async Task<VehicleRecord?> FindInactiveWithoutModelCodeAsync(string registrationNumber, CancellationToken ct)
@@ -395,6 +434,93 @@ public class VehicleService : IVehicleService
 
         var result = await _client.DatastoreSearchAsync<VehicleRecallDatastoreRecord>(query, ct);
         return result.Records.Select(VehicleRecallRecord.FromDatastore).ToList();
+    }
+
+    /// <summary>
+    /// New vehicles of this model code that entered the road, one row per closure month.
+    /// Matched on manufacturer code, model code, and model type when the vehicle has one.
+    /// Rows that share a month (different commercial names) are summed.
+    /// </summary>
+    private async Task<VehicleModelPopularity?> FindModelPopularityAsync(VehicleRecord vehicle, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(_options.NewVehicleMonthlyCountsResourceId)
+            || string.IsNullOrWhiteSpace(vehicle.ManufacturerCode)
+            || string.IsNullOrWhiteSpace(vehicle.ModelCode))
+        {
+            return null;
+        }
+
+        var filters = new Dictionary<string, object>
+        {
+            ["tozeret_cd"] = ToNumericFilterValue(vehicle.ManufacturerCode.Trim()),
+            ["degem_cd"] = ToNumericFilterValue(vehicle.ModelCode.Trim())
+        };
+
+        var modelType = vehicle.ModelType?.Trim();
+        if (!string.IsNullOrEmpty(modelType))
+            filters["sug_degem"] = modelType;
+
+        const int pageSize = 1000;
+        const int maxRows = 10000;
+        var rows = new List<NewVehicleMonthlyCountDatastoreRecord>();
+        for (var offset = 0; offset < maxRows; offset += pageSize)
+        {
+            var query = new DatastoreSearchQuery
+            {
+                ResourceId = _options.NewVehicleMonthlyCountsResourceId,
+                Filters = filters,
+                Fields = ["sgira_month", "car_num"],
+                Sort = "_id asc",
+                Limit = pageSize,
+                Offset = offset
+            };
+
+            var result = await _client.DatastoreSearchAsync<NewVehicleMonthlyCountDatastoreRecord>(query, ct);
+            if (result.Records.Count == 0)
+                break;
+
+            rows.AddRange(result.Records);
+            if (result.Records.Count < pageSize)
+                break;
+        }
+
+        return VehicleModelPopularity.FromRows(rows);
+    }
+
+    /// <summary>
+    /// Active and inactive vehicles of this model code, for every manufacture year.
+    /// Matched on manufacturer code, model code, and model type when the vehicle has one.
+    /// </summary>
+    private async Task<VehicleModelFleet?> FindModelFleetAsync(VehicleRecord vehicle, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(_options.VehicleCountsByModelResourceId)
+            || string.IsNullOrWhiteSpace(vehicle.ManufacturerCode)
+            || string.IsNullOrWhiteSpace(vehicle.ModelCode))
+        {
+            return null;
+        }
+
+        var filters = new Dictionary<string, object>
+        {
+            ["tozeret_cd"] = ToNumericFilterValue(vehicle.ManufacturerCode.Trim()),
+            ["degem_cd"] = ToNumericFilterValue(vehicle.ModelCode.Trim())
+        };
+
+        var modelType = vehicle.ModelType?.Trim();
+        if (!string.IsNullOrEmpty(modelType))
+            filters["sug_degem"] = modelType;
+
+        var query = new DatastoreSearchQuery
+        {
+            ResourceId = _options.VehicleCountsByModelResourceId,
+            Filters = filters,
+            Fields = ["shnat_yitzur", "mispar_rechavim_pailim", "mispar_rechavim_le_pailim"],
+            Limit = 200,
+            Sort = "shnat_yitzur asc"
+        };
+
+        var result = await _client.DatastoreSearchAsync<VehicleModelCountDatastoreRecord>(query, ct);
+        return VehicleModelFleet.FromRows(result.Records);
     }
 
     /// <summary>

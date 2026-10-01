@@ -219,7 +219,11 @@ export function buildFieldGroups(vehicle: VehicleRecord): FieldGroup[] {
     ...mmCells(used, mm, ["modelYear"], t),
     t("vehicleTypeName", vehicle.vehicleTypeName),
     t("vehicleTypeCode", vehicle.vehicleTypeCode),
+    t("euVehicleTypeCode", vehicle.euVehicleTypeCode),
+    t("euVehicleTypeName", vehicle.euVehicleTypeName),
     t("importType", vehicle.importType),
+    t("originality", vehicle.originality),
+    t("source", vehicle.source ? he.source[vehicle.source] : null),
   ]);
 
   const test = compact([
@@ -230,6 +234,7 @@ export function buildFieldGroups(vehicle: VehicleRecord): FieldGroup[] {
     t("registrationOrder", vehicle.registrationOrder),
     t("ownershipType", vehicle.ownershipType),
     dateCell("cancellationDate", vehicle.cancellationDate, { hintTone: "bad" }),
+    t("cancellationReason", vehicle.cancellationReason),
     dateCell("updatedDate", vehicle.updatedDate),
   ]);
 
@@ -239,6 +244,7 @@ export function buildFieldGroups(vehicle: VehicleRecord): FieldGroup[] {
     ...withCatalog(used, "fuelType", vehicle.fuelType, "fuelName", mm, t),
     ...mmCells(used, mm, ["fuelCode"], t),
     ...mmCells(used, mm, ["horsepower"], (k, v) => formattedCell(k, v, formatHp)),
+    formattedCell("enginePowerKw", vehicle.enginePowerKw, (v) => withUnit(v, he.units.kw)),
     ...mmCells(used, mm, ["engineDisplacement"], (k, v) => formattedCell(k, v, formatCc)),
     ...mmCells(used, mm, ["driveName", "driveCode", "driveTechnologyName", "driveTechnologyCode"], t),
     ...mmCells(used, mm, ["automaticTransmissionIndicator"], b),
@@ -329,7 +335,11 @@ export function buildFieldGroups(vehicle: VehicleRecord): FieldGroup[] {
 
   const dimensions = compact([
     ...mmCells(used, mm, ["bodyType"], t),
-    ...mmCells(used, mm, ["doorCount", "seatCount"], t),
+    ...mmCells(used, mm, ["doorCount"], t),
+    ...withCatalog(used, "seatCount", vehicle.seatCount, "seatCount", mm, t),
+    t("seatsBesideDriver", vehicle.seatsBesideDriver),
+    t("axles", vehicle.axles),
+    t("towHitch", vehicle.towHitch),
     ...mmCells(used, mm, ["height"], (k, v) => formattedCell(k, v, (x) => {
       const n = toNumber(x);
       return n == null ? clean(x) : formatNumber(n, 1);

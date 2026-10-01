@@ -233,6 +233,73 @@ const ICONS = {
       <rect x="2.5" y="12.5" width="19" height="5.5" rx="1.8" />
     </>
   ),
+  motorcycle: (
+    <>
+      <circle cx="5.5" cy="16.5" r="3" />
+      <circle cx="18.5" cy="16.5" r="3" />
+      <path d="M5.5 16.5 9 11h6M11 16.5h3.5L15 11M18.5 16.5 16 7h-2.5" />
+    </>
+  ),
+  scooter: (
+    <>
+      <circle cx="6" cy="17.5" r="2.5" />
+      <circle cx="18" cy="17.5" r="2.5" />
+      <path d="M3.5 17.5V14a2 2 0 0 1 2-2h5l2 5.5h3.5M18 17.5 16.5 6H14M6 12v-1.5h4.5" />
+    </>
+  ),
+  bus: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="14" rx="2.2" />
+      <path d="M3.5 10h17M12 3.5V10M7 17.5V20M17 17.5V20" />
+      <circle cx="7.5" cy="14" r=".9" />
+      <circle cx="16.5" cy="14" r=".9" />
+    </>
+  ),
+  van: (
+    <>
+      <path d="M2.5 16.5V7.5A1.5 1.5 0 0 1 4 6h11l4.5 5 2 .8v4.7Z" />
+      <path d="M2.5 11h17M9 6v5" />
+      <circle cx="6.5" cy="16.5" r="1.8" />
+      <circle cx="17" cy="16.5" r="1.8" />
+    </>
+  ),
+  pickup: (
+    <>
+      <path d="M2.5 16.5V12h9V7h5l3.5 5h1.5v4.5Z" />
+      <path d="M11.5 12h8.5" />
+      <circle cx="6.5" cy="16.5" r="1.8" />
+      <circle cx="17" cy="16.5" r="1.8" />
+    </>
+  ),
+  truck: (
+    <>
+      <rect x="2" y="5" width="12" height="11" rx="1" />
+      <path d="M14 9h4l3 3.5V16h-7" />
+      <circle cx="6" cy="17.5" r="2" />
+      <circle cx="17.5" cy="17.5" r="2" />
+    </>
+  ),
+  tractor: (
+    <>
+      <circle cx="7.5" cy="15.5" r="4.5" />
+      <circle cx="7.5" cy="15.5" r="1.2" />
+      <circle cx="18" cy="17" r="2.5" />
+      <path d="M5 11V5h5l1.5 6H19a1.5 1.5 0 0 1 1.5 1.5V15M12 15.5h3.5M16 11V7.5" />
+    </>
+  ),
+  trailer: (
+    <>
+      <rect x="3" y="6" width="15" height="9" rx="1" />
+      <circle cx="10.5" cy="17.5" r="2" />
+      <path d="M18 13h3.5M3 15v2" />
+    </>
+  ),
+  database: (
+    <>
+      <ellipse cx="12" cy="5.5" rx="7.5" ry="2.5" />
+      <path d="M4.5 5.5v13c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5v-13M4.5 12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5" />
+    </>
+  ),
   key: (
     <>
       <circle cx="8" cy="15" r="4.5" />
@@ -324,6 +391,12 @@ const ICONS = {
     <>
       <path d="M8 4h8v5a4 4 0 0 1-8 0Z" />
       <path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20.5h7M9.5 17h5v3.5h-5Z" />
+    </>
+  ),
+  chart: (
+    <>
+      <path d="M4 20h16" />
+      <path d="M7 20V12M12 20V5M17 20v-7" />
     </>
   ),
 } satisfies Record<string, ReactNode>;

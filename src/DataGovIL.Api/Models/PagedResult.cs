@@ -34,6 +34,15 @@ public class VehicleDataResourceOptions
     /// <summary>Vehicles imported for personal use (כלי רכב ביבוא אישי).</summary>
     public string PersonalImportVehiclesResourceId { get; set; } = string.Empty;
 
+    /// <summary>Active public vehicles: taxis, shared taxis, buses (כלי הרכב הציבוריים הפעילים).</summary>
+    public string PublicVehiclesResourceId { get; set; } = string.Empty;
+
+    /// <summary>Active vehicles over 3.5 tons and vehicles without a model code (כלי רכב מעל 3.5 טון וחסרי קוד דגם).</summary>
+    public string HeavyVehiclesResourceId { get; set; } = string.Empty;
+
+    /// <summary>Active two-wheeled vehicles: motorcycles and scooters (כלי רכב דו גלגליים).</summary>
+    public string TwoWheeledVehiclesResourceId { get; set; } = string.Empty;
+
     public string WltpMakeModelResourceId { get; set; } = string.Empty;
 
     /// <summary>Technical / structural vehicle history (km, color change, originality, etc.).</summary>
@@ -53,6 +62,12 @@ public class VehicleDataResourceOptions
 
     /// <summary>Importers and new-vehicle price lists (יבואנים ומחירוני רכב חדש).</summary>
     public string NewVehiclePriceListResourceId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Monthly new-registration counts by model code
+    /// (כמות סגירות חודשי עבור רכבים חדשים בעלי קוד דגם).
+    /// </summary>
+    public string NewVehicleMonthlyCountsResourceId { get; set; } = string.Empty;
 
     /// <summary>Active / inactive vehicle counts by manufacturer, model and year (מאגר כמויות כלי רכב לפי תוצר, דגם ושנת יצור).</summary>
     public string VehicleCountsByModelResourceId { get; set; } = string.Empty;

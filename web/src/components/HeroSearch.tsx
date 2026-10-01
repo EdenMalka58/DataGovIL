@@ -6,6 +6,7 @@ import { he } from "../strings.he";
 import type { VehicleRecord } from "../types/vehicle";
 import { Icon, type IconName } from "./Icon";
 import { LicensePlateField } from "./LicensePlateField";
+import { LogoLottie } from "./LogoLottie";
 import { Ltr, Plate } from "./ui";
 
 type HeroSearchProps = {
@@ -74,7 +75,7 @@ export function HeroSearch({
           <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={loading}>
             {loading ? (
               <>
-                <span className="spinner" aria-hidden="true" />
+                <LogoLottie size="inline" />
                 {he.search.submitting}
               </>
             ) : (
@@ -129,15 +130,17 @@ export function HeroSearch({
           <div className="recent">
             <div className="recent__header">
               <h2 className="recent__title">
-                <Icon name="history" size={18} />
+                <Icon name="history" size={20} />
                 {he.search.recentTitle}
+                <span className="badge badge--primary">{recent.length}</span>
               </h2>
               <button
                 type="button"
-                className="link-btn"
+                className="link-btn recent__clear"
                 onClick={onClearRecent}
                 aria-label={he.search.recentClearAria}
               >
+                <Icon name="trash" size={16} />
                 {he.search.recentClear}
               </button>
             </div>
@@ -145,10 +148,9 @@ export function HeroSearch({
               {recent.map((item) => (
                 <li key={item.plate}>
                   <button type="button" className="recent__item" onClick={() => onPick(item.plate)}>
-                    <span className="vehicle-code sm">
-                      {formatPlate(item.plate)}
-                    </span>
+                    <Plate number={item.plate} small />
                     <span className="recent__name">{item.title}</span>
+                    <Icon name="chevronStart" size={16} className="recent__go flip-rtl" />
                   </button>
                 </li>
               ))}

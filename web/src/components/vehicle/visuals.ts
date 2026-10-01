@@ -1,4 +1,4 @@
-import type { OwnershipKind } from "../../lib/viewModel";
+import type { OwnershipKind, VehicleKind } from "../../lib/viewModel";
 import type { IconName } from "../Icon";
 
 /** Basic Hebrew color-name → swatch map. Unknown colors fall back to a droplet icon. */
@@ -22,6 +22,24 @@ const COLOR_MAP: [RegExp, string][] = [
 export function colorSwatch(name: string): string | null {
   for (const [pattern, hex] of COLOR_MAP) if (pattern.test(name)) return hex;
   return null;
+}
+
+const VEHICLE_KIND_ICONS: Record<VehicleKind, IconName> = {
+  car: "car",
+  vehicle: "car",
+  van: "pickup",
+  truck: "truck",
+  bus: "bus",
+  minibus: "van",
+  taxi: "taxi",
+  motorcycle: "motorcycle",
+  scooter: "scooter",
+  tractor: "tractor",
+  trailer: "trailer",
+};
+
+export function vehicleKindIcon(kind: VehicleKind): IconName {
+  return VEHICLE_KIND_ICONS[kind];
 }
 
 export function ownershipIcon(kind: OwnershipKind | null): IconName {

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using DataGovIL.Api.Services;
 
@@ -8,12 +9,16 @@ namespace DataGovIL.Api.Models;
 /// Serialized with ASP.NET's default camelCase names.
 /// Built from <see cref="VehicleDatastoreRecord"/>, <see cref="VehicleCancelledDatastoreRecord"/>,
 /// <see cref="VehicleInactiveWithoutModelCodeDatastoreRecord"/>, <see cref="VehicleSafetyDiscountDatastoreRecord"/>,
-/// or <see cref="VehiclePersonalImportDatastoreRecord"/>.
+/// <see cref="VehiclePersonalImportDatastoreRecord"/>, <see cref="VehiclePublicDatastoreRecord"/>,
+/// <see cref="VehicleHeavyDatastoreRecord"/>, or <see cref="VehicleTwoWheeledDatastoreRecord"/>.
 /// </summary>
 public class VehicleRecord
 {
     /// <summary>מזהה</summary>
     public string? Id { get; set; }
+
+    /// <summary>המאגר שבו נמצא הרכב</summary>
+    public VehicleDataSource? Source { get; set; }
 
     /// <summary>מספר רכב</summary>
     public string? RegistrationNumber { get; set; }
@@ -38,6 +43,12 @@ public class VehicleRecord
 
     /// <summary>סוג רכב</summary>
     public string? VehicleTypeName { get; set; }
+
+    /// <summary>קוד סוג רכב אירופאי (e.g. M3, N1, L3)</summary>
+    public string? EuVehicleTypeCode { get; set; }
+
+    /// <summary>סוג רכב אירופאי</summary>
+    public string? EuVehicleTypeName { get; set; }
 
     /// <summary>רמת גימור</summary>
     public string? TrimLevel { get; set; }
@@ -71,6 +82,9 @@ public class VehicleRecord
 
     /// <summary>תאריך ביטול</summary>
     public string? CancellationDate { get; set; }
+
+    /// <summary>סיבת ביטול (הפקדה, פירוק, אובדן גמור). Null when the row says לא מבוטל.</summary>
+    public string? CancellationReason { get; set; }
 
     /// <summary>בעלות</summary>
     public string? OwnershipType { get; set; }
@@ -118,6 +132,24 @@ public class VehicleRecord
     /// <summary>כינוי מסחרי</summary>
     public string? CommercialName { get; set; }
 
+    /// <summary>מספר מקומות</summary>
+    public string? SeatCount { get; set; }
+
+    /// <summary>מספר מקומות ליד הנהג</summary>
+    public string? SeatsBesideDriver { get; set; }
+
+    /// <summary>הספק מנוע (קילוואט)</summary>
+    public string? EnginePowerKw { get; set; }
+
+    /// <summary>וו גרירה</summary>
+    public string? TowHitch { get; set; }
+
+    /// <summary>סרנים</summary>
+    public string? Axles { get; set; }
+
+    /// <summary>מקוריות</summary>
+    public string? Originality { get; set; }
+
     /// <summary>ביטול סופי</summary>
     public bool IsPermanentlyCancelled { get; set; }
 
@@ -149,6 +181,18 @@ public class VehicleRecord
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public VehicleEnergyCost? EnergyCost { get; set; }
 
+    /// <summary>
+    /// כמות רכבים חדשים מאותו קוד דגם שעלו לכביש, מסוכמת מכל חודשי הסגירה, ופירוט לפי חודש.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public VehicleModelPopularity? ModelPopularity { get; set; }
+
+    /// <summary>
+    /// כמה רכבים מאותו קוד דגם רשומים בכל שנת יצור, כמה מהם פעילים וכמה לא פעילים, וסיכום על פני כל השנתונים.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public VehicleModelFleet? ModelFleet { get; set; }
+
     /// <summary>שדות נוספים</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, object>? ExtensionData { get; set; }
@@ -156,6 +200,7 @@ public class VehicleRecord
     public static VehicleRecord FromDatastore(VehicleDatastoreRecord row) => new()
     {
         Id = row.Id,
+        Source = VehicleDataSource.PrivateAndCommercial,
         RegistrationNumber = row.RegistrationNumber,
         ManufacturerCode = row.ManufacturerCode,
         ModelType = row.ModelType,
@@ -186,6 +231,7 @@ public class VehicleRecord
     public static VehicleRecord FromCancelled(VehicleCancelledDatastoreRecord row) => new()
     {
         Id = row.Id,
+        Source = VehicleDataSource.PermanentlyCancelled,
         RegistrationNumber = row.RegistrationNumber,
         ManufacturerCode = row.ManufacturerCode,
         ManufacturerName = row.ManufacturerName,
@@ -218,6 +264,7 @@ public class VehicleRecord
     public static VehicleRecord FromInactiveWithoutModelCode(VehicleInactiveWithoutModelCodeDatastoreRecord row) => new()
     {
         Id = row.Id,
+        Source = VehicleDataSource.Inactive,
         RegistrationNumber = row.RegistrationNumber,
         ManufacturerCode = row.ManufacturerCode,
         ManufacturerName = row.ManufacturerName,
@@ -251,6 +298,7 @@ public class VehicleRecord
     public static VehicleRecord FromPersonalImport(VehiclePersonalImportDatastoreRecord row) => new()
     {
         Id = row.Id,
+        Source = VehicleDataSource.PersonalImport,
         RegistrationNumber = row.RegistrationNumber,
         ManufacturerCode = row.ManufacturerCode,
         ManufacturerName = row.ManufacturerName,
@@ -286,4 +334,129 @@ public class VehicleRecord
         UpdatedDate = row.UpdatedDate,
         IsSafetyDiscountEligible = true
     };
+
+    public static VehicleRecord FromPublic(VehiclePublicDatastoreRecord row) => new()
+    {
+        Id = row.Id,
+        Source = VehicleDataSource.PublicTransport,
+        RegistrationNumber = row.RegistrationNumber,
+        VehicleTypeCode = row.VehicleTypeCode,
+        VehicleTypeName = row.VehicleTypeName,
+        ManufactureYear = row.ManufactureYear,
+        TotalWeight = PositiveOrNull(row.TotalWeight),
+        ManufacturerCode = row.ManufacturerCode,
+        ManufacturerName = row.ManufacturerName,
+        ColorCode = row.ColorCode,
+        Color = row.Color,
+        ModelCode = row.ModelCode,
+        ModelName = row.ModelName,
+        CommercialName = row.CommercialName,
+        EuVehicleTypeCode = row.EuVehicleTypeCode,
+        EuVehicleTypeName = row.EuVehicleTypeName,
+        CancellationReason = IsCancellationCode(row.CancellationCode) ? row.CancellationName : null,
+        CancellationDate = row.CancellationDate,
+        TestValidUntil = row.TestValidUntil,
+        SeatCount = PositiveOrNull(row.SeatCount),
+        SeatsBesideDriver = PositiveOrNull(row.SeatsBesideDriver)
+    };
+
+    public static VehicleRecord FromHeavy(VehicleHeavyDatastoreRecord row) => new()
+    {
+        Id = row.Id,
+        Source = VehicleDataSource.HeavyOrNoModelCode,
+        RegistrationNumber = row.RegistrationNumber,
+        ChassisNumber = row.ChassisNumber,
+        ManufactureYear = row.ManufactureYear,
+        ManufacturerCode = row.ManufacturerCode,
+        ManufacturerName = row.ManufacturerName,
+        ModelName = row.ModelName,
+        VehicleTypeName = row.VehicleTypeGroup,
+        FuelType = row.FuelType,
+        TotalWeight = PositiveOrNull(row.TotalWeight),
+        EngineModel = row.EngineModel,
+        EngineNumber = row.EngineNumber,
+        RoadEntryDate = row.RoadEntryDate,
+        RegistrationOrder = row.RegistrationOrder,
+        FrontTire = row.FrontTire,
+        RearTire = row.RearTire,
+        SeatCount = PositiveOrNull(row.SeatCount),
+        SeatsBesideDriver = PositiveOrNull(row.SeatsBesideDriver),
+        TowHitch = row.TowHitch,
+        Axles = row.Axles,
+        ManufacturerModel = new ManufacturerModelRecord
+        {
+            ManufacturerCode = row.ManufacturerCode,
+            ManufacturerName = row.ManufacturerName,
+            ManufacturerCountryName = row.ManufacturerCountryName,
+            ModelName = row.ModelName,
+            ModelYear = row.ManufactureYear,
+            FuelCode = row.FuelCode,
+            FuelName = row.FuelType,
+            EngineDisplacement = PositiveOrNull(row.EngineDisplacement),
+            TotalWeight = PositiveOrNull(row.TotalWeight),
+            CurbWeight = PositiveOrNull(row.CurbWeight),
+            LiftingLoadWeight = PositiveOrNull(row.LiftingLoadWeight),
+            DriveCode = row.DriveCode,
+            DriveName = row.DriveName,
+            EuTypeApproval = row.EuTypeApproval
+        }
+    };
+
+    public static VehicleRecord FromTwoWheeled(VehicleTwoWheeledDatastoreRecord row) => new()
+    {
+        Id = row.Id,
+        Source = VehicleDataSource.TwoWheeled,
+        RegistrationNumber = row.RegistrationNumber,
+        ManufacturerCode = row.ManufacturerCode,
+        ManufacturerName = row.ManufacturerName,
+        ModelName = row.ModelName,
+        ManufactureYear = row.ManufactureYear,
+        FuelType = row.FuelType,
+        TotalWeight = PositiveOrNull(row.TotalWeight),
+        FrontTire = TireSpec(row.FrontTireSize, row.FrontTireLoadIndex, row.FrontTireSpeedRating),
+        RearTire = TireSpec(row.RearTireSize, row.RearTireLoadIndex, row.RearTireSpeedRating),
+        EnginePowerKw = PositiveOrNull(row.EnginePowerKw),
+        ChassisNumber = row.ChassisNumber,
+        RoadEntryDate = row.RoadEntryDate,
+        EuVehicleTypeCode = row.EuVehicleTypeCode,
+        VehicleTypeCode = row.VehicleTypeCode,
+        VehicleTypeName = row.VehicleTypeName,
+        EngineNumber = row.EngineNumber,
+        RegistrationOrder = row.RegistrationOrder,
+        OwnershipType = row.OwnershipType,
+        Originality = row.Originality,
+        SeatCount = PositiveOrNull(row.SeatCount),
+        SeatsBesideDriver = PositiveOrNull(row.SeatsBesideDriver),
+        ManufacturerModel = new ManufacturerModelRecord
+        {
+            ManufacturerCode = row.ManufacturerCode,
+            ManufacturerName = row.ManufacturerName,
+            ManufacturerCountryName = row.ManufacturerCountryName,
+            ModelName = row.ModelName,
+            ModelYear = row.ManufactureYear,
+            FuelCode = row.FuelCode,
+            FuelName = row.FuelType,
+            EngineDisplacement = PositiveOrNull(row.EngineDisplacement),
+            TotalWeight = PositiveOrNull(row.TotalWeight)
+        }
+    };
+
+    /// <summary>These registries store 0 for unknown weights, displacement, power, and seat counts.</summary>
+    private static string? PositiveOrNull(string? raw) =>
+        decimal.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && value > 0
+            ? raw
+            : null;
+
+    private static bool IsCancellationCode(string? code) =>
+        !string.IsNullOrWhiteSpace(code) && code.Trim() != "0";
+
+    /// <summary>Size plus load index and speed rating, e.g. <c>110/70-12 47P</c>. Load index 0 means unknown.</summary>
+    private static string? TireSpec(string? size, string? loadIndex, string? speedRating)
+    {
+        if (string.IsNullOrWhiteSpace(size))
+            return null;
+
+        var rating = $"{PositiveOrNull(loadIndex)}{speedRating?.Trim()}";
+        return rating.Length == 0 ? size.Trim() : $"{size.Trim()} {rating}";
+    }
 }

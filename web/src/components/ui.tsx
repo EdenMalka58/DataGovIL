@@ -134,6 +134,7 @@ export function Modal({
   children,
   wide,
   icon,
+  className,
 }: {
   open: boolean;
   onClose: () => void;
@@ -141,6 +142,7 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
   icon?: IconName;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -154,7 +156,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={`modal ${wide ? "modal--wide" : ""}`}
+      className={["modal", wide && "modal--wide", className].filter(Boolean).join(" ")}
       aria-labelledby="modal-title"
       onClose={onClose}
       onCancel={(e) => {

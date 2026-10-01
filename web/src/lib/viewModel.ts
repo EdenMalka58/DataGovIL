@@ -68,6 +68,50 @@ export function isNonPrivate(kind: OwnershipKind | null): boolean {
   return kind != null && kind !== "private";
 }
 
+// ─── Vehicle kind ─────────────────────────────────────────────────────────
+
+export type VehicleKind =
+  | "car"
+  | "vehicle"
+  | "van"
+  | "truck"
+  | "bus"
+  | "minibus"
+  | "taxi"
+  | "motorcycle"
+  | "scooter"
+  | "tractor"
+  | "trailer";
+
+/** Vehicles over this total weight (kg) count as trucks rather than light commercial. */
+const HEAVY_WEIGHT_KG = 3500;
+
+/**
+ * Classifies from the registry's vehicle type text, the EU category (M/N/L/O), the source registry,
+ * the private/commercial model type (`sug_degem`), and finally the ownership type.
+ */
+export function classifyVehicleKind(vehicle: VehicleRecord): VehicleKind {
+  const type = clean(vehicle.vehicleTypeName) ?? "";
+  const eu = (clean(vehicle.euVehicleTypeCode) ?? clean(vehicle.manufacturerModel?.euTypeApproval) ?? "").toUpperCase();
+  const modelType = (clean(vehicle.modelType) ?? clean(vehicle.manufacturerModel?.modelType) ?? "").toUpperCase();
+  const weight = toNumber(vehicle.totalWeight) ?? toNumber(vehicle.manufacturerModel?.totalWeight);
+
+  if (type.includes("קטנוע")) return "scooter";
+  if (type.includes("אופנוע") || eu.startsWith("L") || vehicle.source === "TwoWheeled") return "motorcycle";
+  if (type.includes("גרור") || eu.startsWith("O")) return "trailer";
+  if (type.includes("טרקטור")) return "tractor";
+  if (type.includes("זוטובוס") || type.includes("זעיר") || eu === "M2") return "minibus";
+  if (type.includes("אוטובוס") || eu === "M3") return "bus";
+  if (type.includes("מונית")) return "taxi";
+  if (type.includes("משא") || eu === "N2" || eu === "N3") return "truck";
+  if (type.includes("מסחרי") || modelType === "M" || eu === "N1") {
+    return weight != null && weight > HEAVY_WEIGHT_KG ? "truck" : "van";
+  }
+  if (classifyOwnership(vehicle.ownershipType) === "taxi") return "taxi";
+  if (type.includes("פרטי") || modelType === "P" || eu === "M1") return "car";
+  return "vehicle";
+}
+
 // ─── Status ───────────────────────────────────────────────────────────────
 
 export type StatusKind = "cancelled" | "inactive" | "testExpired" | "testSoon" | "recall" | "ok";
@@ -96,6 +140,19 @@ export function recallCount(vehicle: VehicleRecord): number {
 /** True when the vehicle is off the road — test/value widgets no longer apply. */
 export function isOffRoad(vehicle: VehicleRecord): boolean {
   return vehicle.isPermanentlyCancelled === true || vehicle.isInactive === true;
+}
+
+/** The valuation needs a price-list row; without one there is no value to show. */
+export function hasListPrice(vehicle: VehicleRecord): boolean {
+  const price = vehicle.depreciation?.listPrice;
+  return price != null && Number.isFinite(price);
+}
+
+/** The fleet row for this vehicle's manufacture year, when the model code has one. */
+export function vehicleYearFleet(vehicle: VehicleRecord) {
+  const year = toNumber(vehicle.manufactureYear);
+  if (year == null) return null;
+  return vehicle.modelFleet?.years.find((row) => row.modelYear === year) ?? null;
 }
 
 /** Statuses in priority order; the first one is the main banner. Always returns ≥ 1 item. */
@@ -278,7 +335,7 @@ export function nonPrivateRowCount(vehicle: VehicleRecord): number {
 // ─── Buyer summary ────────────────────────────────────────────────────────
 
 export type Verdict = "ok" | "warn" | "bad";
-export type SummaryFlag = { id: string; tone: Tone; text: string; anchor?: string };
+export type SummaryFlag = { id: string; tone: Tone; text: string; anchor?: string; bold?: boolean };
 
 export function buyerSummary(vehicle: VehicleRecord): { verdict: Verdict; flags: SummaryFlag[] } {
   const f = he.summary.flags;
@@ -287,6 +344,9 @@ export function buyerSummary(vehicle: VehicleRecord): { verdict: Verdict; flags:
 
   if (vehicle.isPermanentlyCancelled) flags.push({ id: "cancelled", tone: "bad", text: f.cancelled, anchor: "status" });
   if (vehicle.isInactive) flags.push({ id: "inactive", tone: "bad", text: f.inactive, anchor: "status" });
+  if (vehicle.isSafetyDiscountEligible === true) {
+    flags.push({ id: "safetyDiscount", tone: "ok", text: f.safetyDiscount, bold: true });
+  }
 
   const recalls = recallCount(vehicle);
   flags.push(

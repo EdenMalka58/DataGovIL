@@ -30,7 +30,7 @@ export function ValuationPanel({ depreciation, mutedReason }: ValuationPanelProp
   const [ref, inView] = useInView<HTMLDivElement>();
   const d = depreciation;
   const hasPrice = d.listPrice != null && Number.isFinite(d.listPrice);
-  const lines = Array.isArray(d.lines) ? d.lines : [];
+  const lines = (Array.isArray(d.lines) ? d.lines : []).filter((l) => l.percent !== 0 || !!l.value);
   const biggest = biggestImpactIndex(lines);
   const estimated = hasPrice ? (d.estimatedValue ?? d.listPrice! + (d.depreciationValue ?? 0)) : null;
   const animatedValue = useCountUp(estimated, inView);
@@ -79,13 +79,13 @@ export function ValuationPanel({ depreciation, mutedReason }: ValuationPanelProp
                   {formatCurrency(Math.round(animatedValue))}
                 </strong>
               ) : null}
-              <span className={`delta delta--lg delta--${percentTone}`}>
-                <Icon name={percentTone === "down" ? "trendDown" : percentTone === "up" ? "trendUp" : "flat"} size={20} />
-                {formatPercent(animatedPercent ?? d.depreciationPercent)}
-                <span className="sr-only">
-                  {percentTone === "down" ? he.value.lowers : percentTone === "up" ? he.value.raises : he.value.neutral}
+              {d.depreciationPercent !== 0 && (
+                <span className={`delta delta--lg delta--${percentTone}`}>
+                  <Icon name={percentTone === "down" ? "trendDown" : "trendUp"} size={20} />
+                  {formatPercent(animatedPercent ?? d.depreciationPercent)}
+                  <span className="sr-only">{percentTone === "down" ? he.value.lowers : he.value.raises}</span>
                 </span>
-              </span>
+              )}
             </span>
             {hasPrice && (
               <span className="big-number__meta">

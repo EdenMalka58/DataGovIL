@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { clean } from "../../lib/format";
 import { isValidPlate, normalizePlate } from "../../lib/plate";
-import { buyerSummary, computeStatuses, isOffRoad } from "../../lib/viewModel";
+import { buyerSummary, computeStatuses, hasListPrice, isOffRoad } from "../../lib/viewModel";
 import { he } from "../../strings.he";
 import type { VehicleRecord } from "../../types/vehicle";
 import { Icon } from "../Icon";
@@ -10,6 +10,7 @@ import { Reveal } from "../ui";
 import { BuyerSummary } from "./BuyerSummary";
 import { EnergyCostCard } from "./EnergyCostCard";
 import { HistorySection } from "./HistorySection";
+import { PopularityCard } from "./PopularityCard";
 import { RecallsCard } from "./RecallsCard";
 import { SpecsSection } from "./SpecsSection";
 import { CancelledRibbon, StatusBanner, scrollToAnchor } from "./StatusBanner";
@@ -23,7 +24,6 @@ type VehicleViewProps = {
   onCompare: () => void;
   onPrint: () => void;
   onSearch: (plate: string) => void;
-  onBack: () => void;
   printMode: boolean;
 };
 
@@ -31,8 +31,9 @@ const NAV = [
   { id: "summary", label: he.nav.summary },
   { id: "value", label: he.nav.value },
   { id: "history", label: he.nav.history },
-  { id: "energy", label: he.nav.energy },
+  { id: "popularity", label: he.nav.popularity },
   { id: "specs", label: he.nav.specs },
+  { id: "energy", label: he.nav.energy },
 ];
 
 function AnotherSearch({ onSearch }: { onSearch: (plate: string) => void }) {
@@ -88,7 +89,6 @@ export function VehicleView({
   onCompare,
   onPrint,
   onSearch,
-  onBack,
   printMode,
 }: VehicleViewProps) {
   const statuses = useMemo(() => computeStatuses(vehicle), [vehicle]);
@@ -103,8 +103,18 @@ export function VehicleView({
   const alerts = summary.flags.filter((f) => f.tone === "bad" || f.tone === "warn");
   const manufacturerCode = clean(vehicle.manufacturerCode) ?? clean(vehicle.manufacturerModel?.manufacturerCode);
   const modelCode = clean(vehicle.modelCode) ?? clean(vehicle.manufacturerModel?.modelCode);
+  const valuation = hasListPrice(vehicle) ? vehicle.depreciation : null;
+  const hasHistory = !!vehicle.history;
   const hasEnergy = !!vehicle.energyCost;
-  const nav = NAV.filter((n) => (n.id !== "value" || vehicle.depreciation) && (n.id !== "energy" || hasEnergy));
+  const hasFleet = (vehicle.modelFleet?.registeredCount ?? 0) > 0;
+  const hasPopularity = (vehicle.modelPopularity?.months.length ?? 0) > 0 || hasFleet;
+  const nav = NAV.filter(
+    (n) =>
+      (n.id !== "value" || valuation) &&
+      (n.id !== "history" || hasHistory) &&
+      (n.id !== "energy" || hasEnergy) &&
+      (n.id !== "popularity" || hasPopularity),
+  );
 
   return (
     <div className={`result ${vehicle.isPermanentlyCancelled ? "result--cancelled" : ""}`}>
@@ -133,13 +143,6 @@ export function VehicleView({
           {he.app.name} · {he.footer.printedAt(new Date().toLocaleDateString("he-IL"))}
         </div>
 
-        <div className="result-back no-print">
-          <button type="button" className="btn btn--ghost" onClick={onBack}>
-            <Icon name="chevronStart" size={18} />
-            {he.app.home}
-          </button>
-        </div>
-
         {cached && (
           <p className="cached-note" role="status">
             <span className="badge badge--warn">{he.states.cachedBadge}</span>
@@ -159,7 +162,7 @@ export function VehicleView({
               <BuyerSummary
                 verdict={summary.verdict}
                 flags={summary.flags}
-                depreciation={vehicle.depreciation}
+                depreciation={valuation}
                 valueDisabled={offRoad}
               />
             </div>
@@ -172,18 +175,30 @@ export function VehicleView({
               </Reveal>
             )}
 
-            {vehicle.depreciation && (
+            {valuation && (
               <Reveal index={2}>
-                <ValuationPanel depreciation={vehicle.depreciation} mutedReason={mutedReason} />
+                <ValuationPanel depreciation={valuation} mutedReason={mutedReason} />
               </Reveal>
             )}
 
-            <Reveal index={3}>
-              <HistorySection vehicle={vehicle} />
+            {hasHistory && (
+              <Reveal index={3}>
+                <HistorySection vehicle={vehicle} />
+              </Reveal>
+            )}
+
+            {hasPopularity && (
+              <Reveal index={4}>
+                <PopularityCard vehicle={vehicle} />
+              </Reveal>
+            )}
+
+            <Reveal index={5}>
+              <SpecsSection vehicle={vehicle} printMode={printMode} />
             </Reveal>
 
             {vehicle.energyCost && (
-              <Reveal index={4}>
+              <Reveal index={6}>
                 <EnergyCostCard
                   key={vehicle.registrationNumber ?? `${manufacturerCode}/${modelCode}`}
                   initial={vehicle.energyCost}
@@ -192,10 +207,6 @@ export function VehicleView({
                 />
               </Reveal>
             )}
-
-            <Reveal index={5}>
-              <SpecsSection vehicle={vehicle} printMode={printMode} />
-            </Reveal>
 
             <AnotherSearch onSearch={onSearch} />
 

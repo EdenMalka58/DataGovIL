@@ -23,8 +23,7 @@
   /* Brand — sampled from logo-header.png (#0078f0 lens, #00a8f8 highlight, #002858 navy) */
   --primary: #0078f0;
   --primary-strong: #0064cc;
-  --primary-soft: #e7f3ff;
-  --primary-ink: #0056b8;
+  --primary-soft: #e7f3ff;  --primary-ink: #0056b8;
   --on-primary: #ffffff;
   --accent: #00a8f8;
 
@@ -125,8 +124,7 @@
   --ink-inverse: #0a0f1d;
   --primary: #3aaeff;
   --primary-strong: #6ec4ff;
-  --primary-soft: #0e2744;
-  --primary-ink: #b7e3ff;
+  --primary-soft: #0e2744;  --primary-ink: #b7e3ff;
   --on-primary: #041018;
   --accent: #00c8f8;
   --ok: #4ade80;
@@ -173,8 +171,7 @@
     --ink-inverse: #0a0f1d;
     --primary: #3aaeff;
     --primary-strong: #6ec4ff;
-    --primary-soft: #0e2744;
-    --primary-ink: #b7e3ff;
+    --primary-soft: #0e2744;    --primary-ink: #b7e3ff;
     --on-primary: #041018;
     --accent: #00c8f8;
     --ok: #4ade80;

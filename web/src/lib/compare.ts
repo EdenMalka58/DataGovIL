@@ -1,6 +1,6 @@
 import type { IconName } from "../components/Icon";
 import { he } from "../strings.he";
-import type { VehicleRecord } from "../types/vehicle";
+import type { VehicleModelMonthlyCount, VehicleRecord } from "../types/vehicle";
 import {
   clean,
   daysFromToday,
@@ -28,6 +28,7 @@ import {
   nonPrivateRowCount,
   ownerCount,
   recallCount,
+  vehicleYearFleet,
 } from "./viewModel";
 
 export type CompareSection = keyof typeof he.compare.sections;
@@ -35,7 +36,12 @@ type Reason = keyof typeof he.compare.reasons;
 
 export type CellIcon = { name: IconName; label: string; tone: "ok" };
 
-type Extracted = { display: string | null; score?: number | null; icon?: CellIcon };
+type Extracted = {
+  display: string | null;
+  score?: number | null;
+  icon?: CellIcon;
+  series?: VehicleModelMonthlyCount[];
+};
 
 type InsightContext = {
   vehicles: VehicleRecord[];
@@ -63,6 +69,7 @@ export type CompareRow = {
   label: string;
   values: (string | null)[];
   icons: (CellIcon | null)[];
+  series: (VehicleModelMonthlyCount[] | null)[];
   winners: Set<number>;
   differs: boolean;
   insight: string | null;
@@ -366,6 +373,119 @@ const ROWS: RowDef[] = [
   flagRow("tires", R.tires, (v) => v.history?.technical?.tireChangeIndicator, 1),
   textRow("originality", "origin", R.originality, (v) => v.history?.technical?.originalityName ?? v.depreciation?.originality),
   textRow("importType", "origin", R.importType, (v) => v.importType),
+  {
+    id: "newRegistrations",
+    section: "popularity",
+    label: R.newRegistrations,
+    get: (v) => {
+      const pop = v.modelPopularity;
+      if (!pop?.months?.length) return { display: null };
+      return { display: formatNumber(pop.totalCount, 0), score: pop.totalCount, series: pop.months };
+    },
+    insight: (ctx) => {
+      const scored = scoredOf(ctx.extracted);
+      if (scored.length < 2) return null;
+      const low = scored.reduce((a, b) => (b.s < a.s ? b : a));
+      const high = scored.reduce((a, b) => (b.s > a.s ? b : a));
+      return high.s === low.s
+        ? I.popularitySame(formatNumber(low.s, 0))
+        : I.popularity(ctx.names[high.i], formatNumber(high.s, 0), ctx.names[low.i], formatNumber(low.s, 0));
+    },
+  },
+  {
+    id: "yearRegistered",
+    section: "popularity",
+    label: R.yearRegistered,
+    get: (v) => {
+      const fleet = vehicleYearFleet(v);
+      if (!fleet || fleet.registeredCount <= 0) return { display: null };
+      return { display: `${formatNumber(fleet.registeredCount, 0)} · ${fleet.modelYear}`, score: fleet.registeredCount };
+    },
+  },
+  {
+    id: "yearActive",
+    section: "popularity",
+    label: R.yearActive,
+    get: (v) => {
+      const fleet = vehicleYearFleet(v);
+      if (!fleet || fleet.registeredCount <= 0) return { display: null };
+      return { display: formatNumber(fleet.activeCount, 0), score: fleet.activeCount };
+    },
+  },
+  {
+    id: "yearInactive",
+    section: "popularity",
+    label: R.yearInactive,
+    get: (v) => {
+      const fleet = vehicleYearFleet(v);
+      if (!fleet || fleet.registeredCount <= 0) return { display: null };
+      return { display: formatNumber(fleet.inactiveCount, 0), score: fleet.inactiveCount };
+    },
+  },
+  {
+    id: "yearActiveShare",
+    section: "popularity",
+    label: R.yearActiveShare,
+    better: "high",
+    weight: 0.5,
+    reason: "fleet",
+    get: (v) => {
+      const fleet = vehicleYearFleet(v);
+      const rate = fleet?.activeSharePercent;
+      if (rate == null || (fleet?.registeredCount ?? 0) <= 0) return { display: null };
+      return { display: formatPercent(rate, false), score: rate };
+    },
+    insight: (ctx) => {
+      const scored = scoredOf(ctx.extracted);
+      if (scored.length < 2) return null;
+      const low = scored.reduce((a, b) => (b.s < a.s ? b : a));
+      const high = scored.reduce((a, b) => (b.s > a.s ? b : a));
+      const rate = (n: number) => formatPercent(n, false);
+      const year = (i: number) => String(vehicleYearFleet(ctx.vehicles[i])?.modelYear ?? "");
+      return high.s === low.s
+        ? I.fleetSame(rate(low.s))
+        : I.fleet(ctx.names[high.i], year(high.i), rate(high.s), ctx.names[low.i], year(low.i), rate(low.s));
+    },
+  },
+  {
+    id: "modelRegistered",
+    section: "popularity",
+    label: R.modelRegistered,
+    get: (v) => {
+      const fleet = v.modelFleet;
+      if (!fleet || fleet.registeredCount <= 0) return { display: null };
+      return { display: formatNumber(fleet.registeredCount, 0), score: fleet.registeredCount };
+    },
+    insight: (ctx) => {
+      const scored = scoredOf(ctx.extracted);
+      if (scored.length < 2) return null;
+      const low = scored.reduce((a, b) => (b.s < a.s ? b : a));
+      const high = scored.reduce((a, b) => (b.s > a.s ? b : a));
+      return high.s === low.s
+        ? I.modelFleetSame(formatNumber(low.s, 0))
+        : I.modelFleet(ctx.names[high.i], formatNumber(high.s, 0), ctx.names[low.i], formatNumber(low.s, 0));
+    },
+  },
+  {
+    id: "modelActiveShare",
+    section: "popularity",
+    label: R.modelActiveShare,
+    get: (v) => {
+      const rate = v.modelFleet?.activeSharePercent;
+      if (rate == null || (v.modelFleet?.registeredCount ?? 0) <= 0) return { display: null };
+      return { display: formatPercent(rate, false), score: rate };
+    },
+    insight: (ctx) => {
+      const scored = scoredOf(ctx.extracted);
+      if (scored.length < 2) return null;
+      const low = scored.reduce((a, b) => (b.s < a.s ? b : a));
+      const high = scored.reduce((a, b) => (b.s > a.s ? b : a));
+      const rate = (n: number) => formatPercent(n, false);
+      return high.s === low.s
+        ? I.modelShareSame(rate(low.s))
+        : I.modelShare(ctx.names[high.i], rate(high.s), ctx.names[low.i], rate(low.s));
+    },
+  },
   numRow("safetyScore", "safety", R.safetyScore, (v) => mm(v)?.safetyScore, { better: "high", weight: 2, reason: "safety" }),
   numRow("safetyLevel", "safety", R.safetyLevel, (v) => v.safetyEquipmentLevel ?? mm(v)?.safetyEquipmentLevel, {
     better: "high",
@@ -526,6 +646,7 @@ export function buildComparison(vehicles: VehicleRecord[]): CompareModel {
       label: def.label,
       values,
       icons: extracted.map((e) => e.icon ?? null),
+      series: extracted.map((e) => (e.series && e.series.length > 0 ? e.series : null)),
       winners,
       differs: distinct.size > 1,
       insight,

@@ -7,15 +7,16 @@ import { needsLtr, vehicleTitle } from "../lib/format";
 import { formatPlate, formatPlateInput, isValidPlate, normalizePlate, PLATE_MAX_DIGITS } from "../lib/plate";
 import { he } from "../strings.he";
 import { Icon } from "./Icon";
+import { LogoLottie } from "./LogoLottie";
 import { Ltr, Plate } from "./ui";
+import { MonthlyCountChart } from "./vehicle/MonthlyCountChart";
 
 type CompareViewProps = {
   comparison: Comparison;
   onOpenVehicle: (plate: string) => void;
-  onBack: () => void;
 };
 
-export function CompareView({ comparison, onOpenVehicle, onBack }: CompareViewProps) {
+export function CompareView({ comparison, onOpenVehicle }: CompareViewProps) {
   const { items } = comparison;
   const [plate, setPlate] = useState("");
   const [adding, setAdding] = useState(false);
@@ -63,10 +64,6 @@ export function CompareView({ comparison, onOpenVehicle, onBack }: CompareViewPr
   return (
     <section className="container compare-page" aria-labelledby="compare-title">
       <div className="compare-page__head">
-        <button type="button" className="btn btn--ghost compare-page__back" onClick={onBack}>
-          <Icon name="chevronStart" size={18} />
-          {he.compare.back}
-        </button>
         <div className="compare-page__heading">
           <h1 id="compare-title" className="compare-page__title">
             <Icon name="compare" size={26} />
@@ -104,7 +101,7 @@ export function CompareView({ comparison, onOpenVehicle, onBack }: CompareViewPr
               />
             </div>
             <button type="submit" className="btn btn--primary" disabled={adding || comparison.isFull}>
-              {adding ? <span className="spinner" aria-hidden="true" /> : <Icon name="plus" size={18} />}
+              {adding ? <LogoLottie size="inline" /> : <Icon name="plus" size={18} />}
               {adding ? he.compare.adding : he.compare.addButton}
             </button>
           </form>
@@ -214,7 +211,11 @@ export function CompareView({ comparison, onOpenVehicle, onBack }: CompareViewPr
                         <Fragment key={row.id}>
                           <tr
                             className={
-                              [row.differs && items.length > 1 ? "is-diff" : "", row.insight ? "has-insight" : ""]
+                              [
+                                row.differs && items.length > 1 ? "is-diff" : "",
+                                row.insight ? "has-insight" : "",
+                                row.series.some((series) => series && series.length > 0) ? "has-chart" : "",
+                              ]
                                 .filter(Boolean)
                                 .join(" ") || undefined
                             }
@@ -222,25 +223,31 @@ export function CompareView({ comparison, onOpenVehicle, onBack }: CompareViewPr
                             <th scope="row">{row.label}</th>
                             {row.values.map((value, i) => {
                               const icon = value == null ? null : row.icons[i];
+                              const series = row.series[i];
                               return (
                                 <td key={i} className={row.winners.has(i) ? "is-winner" : undefined}>
-                                  {icon && (
-                                    <span className={`cell-icon cell-icon--${icon.tone}`}>
-                                      <Icon name={icon.name} size={16} label={icon.label} />
+                                  <div className="compare-cell">
+                                    <span className="compare-cell__line">
+                                      {icon && (
+                                        <span className={`cell-icon cell-icon--${icon.tone}`}>
+                                          <Icon name={icon.name} size={16} label={icon.label} />
+                                        </span>
+                                      )}
+                                      {value == null ? (
+                                        <span className="missing">{he.compare.missing}</span>
+                                      ) : needsLtr(value) ? (
+                                        <Ltr>{value}</Ltr>
+                                      ) : (
+                                        value
+                                      )}
+                                      {row.winners.has(i) && (
+                                        <span className="winner-mark">
+                                          <Icon name="check" size={14} label={he.compare.winnerAria} />
+                                        </span>
+                                      )}
                                     </span>
-                                  )}
-                                  {value == null ? (
-                                    <span className="missing">{he.compare.missing}</span>
-                                  ) : needsLtr(value) ? (
-                                    <Ltr>{value}</Ltr>
-                                  ) : (
-                                    value
-                                  )}
-                                  {row.winners.has(i) && (
-                                    <span className="winner-mark">
-                                      <Icon name="check" size={14} label={he.compare.winnerAria} />
-                                    </span>
-                                  )}
+                                    {series && series.length > 0 && <MonthlyCountChart points={series} compact />}
+                                  </div>
                                 </td>
                               );
                             })}

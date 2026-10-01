@@ -1,11 +1,11 @@
 import { clean, vehicleTitle } from "../../lib/format";
 import { formatPlate } from "../../lib/plate";
-import { classifyOwnership, ownershipTone } from "../../lib/viewModel";
+import { classifyOwnership, classifyVehicleKind, ownershipTone } from "../../lib/viewModel";
 import { he } from "../../strings.he";
 import type { VehicleRecord } from "../../types/vehicle";
 import { Icon, type IconName } from "../Icon";
 import { CopyButton, Ltr, Plate, useToast, copyText } from "../ui";
-import { colorSwatch, ownershipIcon } from "./visuals";
+import { colorSwatch, ownershipIcon, vehicleKindIcon } from "./visuals";
 
 type VehicleHeroProps = {
   vehicle: VehicleRecord;
@@ -25,7 +25,12 @@ export function VehicleHero({ vehicle, inComparison, onCompare, onPrint }: Vehic
   const fuel = clean(vehicle.fuelType) ?? clean(vehicle.manufacturerModel?.fuelName);
   const driveTechnology = clean(vehicle.manufacturerModel?.driveTechnologyName);
   const color = clean(vehicle.color);
+  const kind = classifyVehicleKind(vehicle);
+  const kindLabel = he.vehicleKind[kind];
   const vehicleType = clean(vehicle.vehicleTypeName);
+  const typeDetail = vehicleType && vehicleType !== kindLabel ? vehicleType : null;
+  const euCategory = clean(vehicle.euVehicleTypeCode) ?? clean(vehicle.manufacturerModel?.euTypeApproval);
+  const sourceLabel = vehicle.source ? he.source[vehicle.source] : null;
   const ownership = clean(vehicle.ownershipType);
   const ownershipKind = classifyOwnership(ownership);
   const swatch = color ? colorSwatch(color) : null;
@@ -47,10 +52,28 @@ export function VehicleHero({ vehicle, inComparison, onCompare, onPrint }: Vehic
     <section className="vehicle-hero card card--elevated" aria-labelledby="vehicle-title">
       <div className="vehicle-hero__bg" aria-hidden="true" />
       <div className="vehicle-hero__main">
-        <p className="eyebrow eyebrow--plain">
-          <Icon name="car" size={16} />
-          {he.hero.eyebrow}
-        </p>
+        <div className={`vehicle-kind vehicle-kind--${kind}`}>
+          <span className="vehicle-kind__icon" aria-hidden="true">
+            <Icon name={vehicleKindIcon(kind)} size={30} />
+          </span>
+          <div className="vehicle-kind__text">
+            <p className="vehicle-kind__type">
+              {kindLabel}
+              {typeDetail && <span className="vehicle-kind__detail">{typeDetail}</span>}
+              {euCategory && (
+                <span className="vehicle-kind__eu" title={he.hero.euCategory}>
+                  <Ltr>{euCategory}</Ltr>
+                </span>
+              )}
+            </p>
+            {sourceLabel && (
+              <p className="vehicle-kind__source">
+                <Icon name="database" size={14} />
+                {he.hero.foundIn} {sourceLabel}
+              </p>
+            )}
+          </div>
+        </div>
         <h1 id="vehicle-title" className="vehicle-hero__title">
           {vehicleTitle(vehicle)}
           {year && (
@@ -82,12 +105,6 @@ export function VehicleHero({ vehicle, inComparison, onCompare, onPrint }: Vehic
                 <Icon name="droplet" size={16} />
               )}
               {color}
-            </li>
-          )}
-          {vehicleType && (
-            <li className="chip">
-              <Icon name="car" size={16} />
-              {vehicleType}
             </li>
           )}
           {ownership && (

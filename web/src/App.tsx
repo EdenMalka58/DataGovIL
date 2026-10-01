@@ -277,11 +277,18 @@ function AppContent() {
         comparisonCount={comparison.items.length}
         comparisonActive={page === "compare"}
         onOpenCompare={openCompare}
+        back={
+          page === "compare"
+            ? { label: he.compare.back, onClick: leaveCompare }
+            : view.status !== "idle"
+              ? { label: he.app.home, onClick: goHome }
+              : null
+        }
       />
 
       <main id="main" className="main" tabIndex={-1}>
         {page === "compare" && (
-          <CompareView comparison={comparison} onOpenVehicle={(plate) => void search(plate)} onBack={leaveCompare} />
+          <CompareView comparison={comparison} onOpenVehicle={(plate) => void search(plate)} />
         )}
 
         {page === "main" && view.status === "idle" && (
@@ -324,7 +331,6 @@ function AppContent() {
               onCompare={handleCompare}
               onPrint={handlePrint}
               onSearch={(plate) => void search(plate)}
-              onBack={goHome}
               printMode={printMode}
             />
           ))}
