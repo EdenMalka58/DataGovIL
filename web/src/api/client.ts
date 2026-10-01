@@ -1,5 +1,12 @@
 import type { ProblemDetails } from "../types/vehicle";
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
+
+/** Resolve an API path (e.g. "/api/Vehicles/123") against VITE_API_BASE_URL. */
+export function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}
+
 export type ApiErrorKind = "notFound" | "upstream" | "network" | "http";
 
 export class ApiError extends Error {
@@ -31,7 +38,7 @@ async function readProblem(response: Response): Promise<ProblemDetails | undefin
 export async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(url, { headers: { Accept: "application/json" }, signal });
+    response = await fetch(apiUrl(url), { headers: { Accept: "application/json" }, signal });
   } catch (cause) {
     if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
     throw new ApiError("network", 0);

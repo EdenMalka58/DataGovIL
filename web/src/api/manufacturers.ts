@@ -1,3 +1,4 @@
+import { apiUrl } from "./client";
 import type { ManufacturerModelRecord } from "../types/manufacturer";
 import type { PagedResult } from "../types/vehicle";
 
@@ -39,7 +40,7 @@ export async function listManufacturers(options?: {
   if (options?.pageSize != null) params.set("pageSize", String(options.pageSize));
 
   const query = params.toString();
-  const response = await fetch(`/api/manufacturers${query ? `?${query}` : ""}`);
+  const response = await fetch(apiUrl(`/api/manufacturers${query ? `?${query}` : ""}`));
   await ensureOk(response);
   return (await response.json()) as PagedResult<ManufacturerModelRecord>;
 }
@@ -49,7 +50,7 @@ export async function lookupManufacturerModel(
   modelCode: string,
 ): Promise<ManufacturerModelRecord> {
   const response = await fetch(
-    `/api/manufacturers/${encodeURIComponent(manufacturerCode)}/${encodeURIComponent(modelCode)}`,
+    apiUrl(`/api/manufacturers/${encodeURIComponent(manufacturerCode)}/${encodeURIComponent(modelCode)}`),
   );
   await ensureOk(response);
   return (await response.json()) as ManufacturerModelRecord;
