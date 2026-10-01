@@ -84,7 +84,7 @@ builder.Services.AddSingleton<IEnergyPriceProvider, ConfigEnergyPriceProvider>()
 builder.Services.AddScoped<IVehicleEnergyCostService, VehicleEnergyCostService>();
 builder.Services.AddSingleton<IManufacturerExportStatusStore, ManufacturerExportStatusStore>();
 builder.Services.AddSingleton<IManufacturerExportWorkQueue, ManufacturerExportWorkQueue>();
-builder.Services.AddHostedService<ManufacturerExportBackgroundService>();
+//builder.Services.AddHostedService<ManufacturerExportBackgroundService>();
 
 var app = builder.Build();
 
