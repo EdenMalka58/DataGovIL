@@ -7,6 +7,11 @@ using DataGovIL.Client;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+if (builder.Environment.IsProduction())
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
 
 // Controllers + Swagger
 builder.Services.AddControllers()
@@ -17,9 +22,12 @@ builder.Services.AddControllers()
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("WebApp", policy =>
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod());
+    //policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+    //      .AllowAnyHeader()
+    //      .AllowAnyMethod());
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -80,13 +88,13 @@ builder.Services.AddHostedService<ManufacturerExportBackgroundService>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("WebApp");
 app.UseAuthorization();
 app.MapControllers();
