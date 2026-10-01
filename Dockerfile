@@ -6,18 +6,18 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy project files first for better Docker layer caching
-COPY DataGovIL.Api/DataGovIL.Api.csproj DataGovIL.Api/
-COPY DataGovIL.Client/DataGovIL.Client.csproj DataGovIL.Client/
+COPY src/DataGovIL.Api/DataGovIL.Api.csproj src/DataGovIL.Api/
+COPY src/DataGovIL.Client/DataGovIL.Client.csproj src/DataGovIL.Client/
 
 # Restore dependencies
-RUN dotnet restore DataGovIL.Api/DataGovIL.Api.csproj
+RUN dotnet restore src/DataGovIL.Api/DataGovIL.Api.csproj
 
 # Copy source code
-COPY DataGovIL.Api/ DataGovIL.Api/
-COPY DataGovIL.Client/ DataGovIL.Client/
+COPY src/DataGovIL.Api/ src/DataGovIL.Api/
+COPY src/DataGovIL.Client/ src/DataGovIL.Client/
 
 # Publish
-RUN dotnet publish DataGovIL.Api/DataGovIL.Api.csproj \
+RUN dotnet publish src/DataGovIL.Api/DataGovIL.Api.csproj \
     -c Release \
     -o /app/publish \
     --no-restore
