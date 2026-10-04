@@ -8,6 +8,8 @@ export interface ManufacturerModelRecord {
   modelType?: string | null;
   manufacturerCode?: string | null;
   manufacturerName?: string | null;
+  /** Motomarks CDN slug. Present only when that manufacturer has a logo. */
+  logoSlug?: string | null;
   manufacturerCountryName?: string | null;
   tozar?: string | null;
   modelCode?: string | null;

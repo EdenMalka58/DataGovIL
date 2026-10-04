@@ -23,4 +23,9 @@
     <ProjectReference Include="..\DataGovIL.Client\DataGovIL.Client.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="resources/motomarks/manufacturers_by_code.json" />
+    <Content Remove="resources/motomarks/manufacturers_by_code.json" />
+  </ItemGroup>
+
 </Project>

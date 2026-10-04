@@ -24,6 +24,12 @@ public class ManufacturerModelRecord
     /// <summary>תוצר</summary>
     public string? ManufacturerName { get; set; }
 
+    /// <summary>
+    /// Motomarks logo slug for <see cref="ManufacturerCode"/> when that maker has a published logo.
+    /// Null when the code is missing from the logo catalog or marked as having no logo.
+    /// </summary>
+    public string? LogoSlug => MotomarksLogoCatalog.SlugFor(ManufacturerCode);
+
     /// <summary>ארץ תוצר</summary>
     public string? ManufacturerCountryName { get; set; }
 

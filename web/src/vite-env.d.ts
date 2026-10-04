@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
+  readonly MOTOMARKS_KEY?: string;
 }
 
 interface ImportMeta {

@@ -3,10 +3,11 @@ import { ApiError } from "../api/client";
 import { lookupVehicle } from "../api/vehicles";
 import type { Comparison } from "../hooks/useComparison";
 import { buildComparison, type CompareSection } from "../lib/compare";
-import { needsLtr, vehicleTitle } from "../lib/format";
+import { clean, needsLtr, vehicleTitle } from "../lib/format";
 import { formatPlate, formatPlateInput, isValidPlate, normalizePlate, PLATE_MAX_DIGITS } from "../lib/plate";
 import { he } from "../strings.he";
 import { Icon } from "./Icon";
+import { ManufacturerLogo } from "./ManufacturerLogo";
 import { LogoLottie } from "./LogoLottie";
 import { Ltr, Plate } from "./ui";
 import { MonthlyCountChart } from "./vehicle/MonthlyCountChart";
@@ -176,6 +177,11 @@ export function CompareView({ comparison, onOpenVehicle }: CompareViewProps) {
                           >
                             <Plate number={p} small />
                           </button>
+                          <ManufacturerLogo
+                            logoSlug={v.manufacturerModel?.logoSlug}
+                            name={clean(v.manufacturerName) ?? clean(v.manufacturerModel?.manufacturerName)}
+                            className="compare-col__logo"
+                          />
                           <span className="compare-col__title">{vehicleTitle(v)}</span>
                           <span className="compare-col__points">
                             {he.compare.points(model.points[i])}

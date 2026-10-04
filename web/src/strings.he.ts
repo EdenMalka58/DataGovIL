@@ -95,6 +95,7 @@ export const he = {
     year: (y: string) => `שנת ${y}`,
     foundIn: "נמצא במאגר:",
     euCategory: "קטגוריה אירופאית",
+    logoAlt: (name: string) => `לוגו ${name}`,
   },
   vehicleKind: {
     car: "רכב פרטי",

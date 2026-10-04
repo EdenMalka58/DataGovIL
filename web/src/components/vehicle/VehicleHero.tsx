@@ -3,6 +3,7 @@ import { formatPlate } from "../../lib/plate";
 import { classifyOwnership, classifyVehicleKind, ownershipTone } from "../../lib/viewModel";
 import { he } from "../../strings.he";
 import type { VehicleRecord } from "../../types/vehicle";
+import { ManufacturerLogo } from "../ManufacturerLogo";
 import { Icon, type IconName } from "../Icon";
 import { CopyButton, Ltr, Plate, useToast, copyText } from "../ui";
 import { colorSwatch, ownershipIcon, vehicleKindIcon } from "./visuals";
@@ -37,6 +38,7 @@ export function VehicleHero({ vehicle, inComparison, onCompare, onPrint }: Vehic
   const subtitle = [clean(vehicle.commercialName) ? clean(vehicle.modelName) : null, clean(vehicle.modelType)]
     .filter(Boolean)
     .join(" · ");
+  const brand = clean(vehicle.manufacturerName) ?? clean(vehicle.manufacturerModel?.manufacturerName);
 
   async function copyLink() {
     if (!plate) return;
@@ -117,6 +119,11 @@ export function VehicleHero({ vehicle, inComparison, onCompare, onPrint }: Vehic
       </div>
 
       <div className="vehicle-hero__side">
+        <ManufacturerLogo
+          logoSlug={vehicle.manufacturerModel?.logoSlug}
+          name={brand}
+          className="vehicle-hero__logo"
+        />
         <div className="vehicle-hero__plate">
           <Plate number={plate} />
           {plate && (

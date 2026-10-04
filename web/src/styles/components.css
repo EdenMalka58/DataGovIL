@@ -937,6 +937,11 @@
   min-inline-size: 0;
 }
 
+.my-compare__logo {
+  inline-size: 28px;
+  block-size: 28px;
+}
+
 .my-compare__name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1339,6 +1344,18 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
+}
+
+.brand-logo {
+  display: block;
+  flex: none;
+  object-fit: contain;
+}
+
+.vehicle-hero__logo {
+  inline-size: 144px;
+  block-size: 144px;
+  align-self: flex-end;
 }
 
 .vehicle-hero__year {
@@ -3759,6 +3776,11 @@ button.alert-chip:hover {
 
 .compare-col__open {
   border-radius: 8px;
+}
+
+.compare-col__logo {
+  inline-size: 40px;
+  block-size: 40px;
 }
 
 .compare-col__title {

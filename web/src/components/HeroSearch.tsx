@@ -1,10 +1,11 @@
 import type { FormEvent } from "react";
-import { vehicleTitle } from "../lib/format";
+import { clean, vehicleTitle } from "../lib/format";
 import { formatPlate } from "../lib/plate";
 import type { RecentSearch } from "../lib/storage";
 import { he } from "../strings.he";
 import type { VehicleRecord } from "../types/vehicle";
 import { Icon, type IconName } from "./Icon";
+import { ManufacturerLogo } from "./ManufacturerLogo";
 import { LicensePlateField } from "./LicensePlateField";
 import { LogoLottie } from "./LogoLottie";
 import { Ltr, Plate } from "./ui";
@@ -109,6 +110,11 @@ export function HeroSearch({
               {comparisonItems.map((v, i) => (
                 <li key={String(v.registrationNumber ?? i)} className="my-compare__item">
                   <Plate number={v.registrationNumber} small />
+                  <ManufacturerLogo
+                    logoSlug={v.manufacturerModel?.logoSlug}
+                    name={clean(v.manufacturerName) ?? clean(v.manufacturerModel?.manufacturerName)}
+                    className="my-compare__logo"
+                  />
                   <span className="my-compare__name">{vehicleTitle(v)}</span>
                 </li>
               ))}
