@@ -19,6 +19,12 @@ export function Footer({ updatedDate }: { updatedDate: string | null }) {
           </p>
         )}
         <p className="footer__disclaimer">{he.footer.disclaimer}</p>
+        <p className="footer__credit">
+          {he.footer.logosCredit}{" "}
+          <a href="https://motomarks.io" target="_blank" rel="noopener noreferrer">
+            {he.footer.logosCreditLink}
+          </a>
+        </p>
         <button type="button" className="link-btn footer__privacy no-print" onClick={() => setPrivacyOpen(true)}>
           {he.footer.privacy}
         </button>

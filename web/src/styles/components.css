@@ -4276,3 +4276,12 @@ button.alert-chip:hover {
   max-inline-size: 680px;
   font-size: var(--fs-xs);
 }
+
+.footer__credit {
+  font-size: var(--fs-xs);
+}
+
+.footer__credit a {
+  color: inherit;
+  text-decoration: underline;
+}
